@@ -1,50 +1,27 @@
 #include "Lock.h"
 
-Lock::Lock()
+Lock::Lock(Lock* leftLock)
 {
-	for (int i = 0; i < numberOfDigitsPerLock; i++)
+	if (leftLock != NULL)
 	{
-		int randomNumber = GenerateRandomDigit();
-		lockDigitsVector.push_back(randomNumber);
+		SetLeftLock(leftLock);
+		InitializeLock(leftLock);
 	}
-	GenerateHashes();
-
-	LockTheLock(true);
+	else
+		InitializeLock();
 
 	SetIsLocked(false);
 }
 
 Lock::~Lock()
 {
-	//for (std::vector<int*>::iterator it = lockDigitsVector.begin(); it != lockDigitsVector.end(); it++)
-	//{
-	//	delete (*it);
-	//	(*it) = NULL;
-	//}
-	//lockDigitsVector.clear();
-}
-
-int Lock::GenerateRandomDigit() const
-{
-	return rand() % 10;
-}
-
-/// TODO: Find a better solution?
-int Lock::GenerateRandomFourDigitNumber() const
-{
-	int r = rand() % 9999 + 1000;
-	while (r > 9999 || r < 1000)
-	{
-		r = rand() % 9999 + 1000;
-	}
-	return r;
 }
 
 // Each digit of the combination lock may be turned in sequence one movement at a time
-void Lock::TurnDigit(int & digit, int times, bool rotateUp)
+void Lock::TurnDigit(int & digit, int times, bool isDigitPositive)
 {
-	/// TODO: A positive number will turn a dial downwards and a negative number will turn a dial upwards
-	if (!rotateUp)
+	// A positive number will turn a dial downwards and a negative number will turn a dial upwards
+	if (!isDigitPositive)
 	{
 		for (times; times > 0; times--)
 		{
@@ -66,18 +43,24 @@ void Lock::TurnDigit(int & digit, int times, bool rotateUp)
 	}
 }
 
-/// TODO
-void Lock::LockTheLock(bool isFirstLock)
+/// TODO: the hash function inputs should be the same for all multi-lock safes but the number for the root should be different each time
+// Different root for each multi-lock safe or different root for each lock? I'm guessing the first one?
+void Lock::InitializeLock(Lock* leftLock)
 {
-	if (isFirstLock)
+	if (leftLock != NULL)
+	{
+		root = leftLock->GetRoot(); // Same root for all locks in the multi-lock safe
+		UnlockHash(GetFourDigitsFromNumber(leftLock->GetHN()));
+		LockHash();
+		PassHash();
+	}
+	else
 	{
 		GenerateRoot();
 		UnlockHash();
 		LockHash();
 		PassHash();
 	}
-	//else
-
 }
 
 /// TODO: When a button on a combination lock is pressed the lock will either open or remain closed (depending on the combination entered)
@@ -99,7 +82,7 @@ int Lock::GetNumberFromFourDigits(std::vector<int> digitsVector)
 	return currentNumber;
 }
 
-std::vector<int> Lock::GetFourDigitsFromNumber(int number)
+std::vector<int> Lock::GetFourDigitsFromNumber(const int number)
 {
 	std::vector<int> digitsVector;
 	std::string temp = std::to_string(number);
@@ -122,39 +105,62 @@ std::vector<int> Lock::GetFourDigitsFromNumber(int number)
 	return digitsVector;
 }
 
-void Lock::GenerateHashes()
-{
-	cnHash = GenerateRandomFourDigitNumber();
-	lnHash = GenerateRandomFourDigitNumber();
-	hnHash = GenerateRandomFourDigitNumber();
-}
-
 void Lock::GenerateRoot()
 {
 	root = GenerateRandomFourDigitNumber();
 }
 
-void Lock::UnlockHash()
+void Lock::Hash(const std::vector<int> hashDigits, const int* origin, int* derivative)
 {
-	std::vector<int> cnHashDigits = GetFourDigitsFromNumber(cnHash);
-	std::vector<int> rootDigits = GetFourDigitsFromNumber(root);
+	bool isHashDigitPositive;
+	std::vector<int> originDigits = GetFourDigitsFromNumber(*origin);
 
 	for (int i = 0; i < numberOfDigitsPerLock; i++)
 	{
-		if (!rootDigits.empty() && !cnHashDigits.empty())
+		if (!originDigits.empty() && !hashDigits.empty())
 		{
-			TurnDigit(rootDigits.at(i), cnHashDigits.at(i), true);
+			if (hashDigits.at(i) > 0)
+				isHashDigitPositive = true;
+			else
+				isHashDigitPositive = false;
+
+			TurnDigit(originDigits.at(i), hashDigits.at(i), isHashDigitPositive);
 		}
 	}
-	cn = GetNumberFromFourDigits(rootDigits);
+	*derivative = GetNumberFromFourDigits(originDigits);
+}
+
+//void Lock::Hash(const int hash, const int* origin, int* derivative)
+//{
+//	std::vector<int> hashDigits = GetFourDigitsFromNumber(hash);
+//	std::vector<int> originDigits = GetFourDigitsFromNumber(*origin);
+//
+//	for (int i = 0; i < numberOfDigitsPerLock; i++)
+//	{
+//		if (!originDigits.empty() && !hashDigits.empty())
+//		{
+//			TurnDigit(originDigits.at(i), hashDigits.at(i), true);
+//		}
+//	}
+//	*derivative = GetNumberFromFourDigits(originDigits);
+//}
+
+void Lock::UnlockHash()
+{
+	Hash(cnHash, &root, &cn);
+}
+
+void Lock::UnlockHash(const std::vector<int> hashDigits)
+{
+	Hash(hashDigits, &root, &cn);
 }
 
 void Lock::LockHash()
 {
-	
+	Hash(lnHash, &cn, &ln);
 }
 
 void Lock::PassHash()
 {
-	
+	Hash(hnHash, &ln, &hn);
 }

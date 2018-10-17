@@ -1,6 +1,5 @@
 #pragma once
 
-#include <random>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -9,46 +8,36 @@
 class Lock
 {
 public:
-	Lock();
+	Lock(Lock* leftLock = NULL);
 	virtual ~Lock();
 
-	int GenerateRandomDigit() const;
-	int GenerateRandomFourDigitNumber() const;
-	void TurnDigit(int& digit, int times, bool rotateUp);
-	void LockTheLock(bool isFirstLock);
+	void TurnDigit(int& digit, int times, bool isDigitPositive);
+	void InitializeLock(Lock* leftLock = NULL);
 	void PressButton();
-	void GenerateHashes();
+	int GetNumberFromFourDigits(std::vector<int> digitsVector);
+	std::vector<int> GetFourDigitsFromNumber(const int number);
+
 	void GenerateRoot();
+	void Hash(const std::vector<int> hashDigits, const int* origin, int* derivative);
 	void UnlockHash();
+	void UnlockHash(const std::vector<int> hashDigits);
 	void LockHash();
 	void PassHash();
 
-	std::vector<int> GetLockDigitsVector() const { return lockDigitsVector; }
-
-	int GetNumberFromFourDigits(std::vector<int> digitsVector);
-	std::vector<int> GetFourDigitsFromNumber(int number);
-
-	int GetCNHash() const { return cnHash; }
-	int GetLNHash() const { return lnHash; }
-	int GetHNHash() const { return hnHash; }
+	Lock* GetLeftLock() const { return left; }
+	void SetLeftLock(Lock* l) { left = l; }
 	int GetRoot() const { return root; }
 	int GetCN() const { return cn; }
 	int GetLN() const { return ln; }
 	int GetHN() const { return hn; }
-
 	bool IsLocked() const { return isLocked; }
 	void SetIsLocked(bool b) { isLocked = b; }
 
 protected:
-	std::vector<int> lockDigitsVector;
-
-	int cnHash;
-	int lnHash;
-	int hnHash;
+	Lock* left;
 	int root;
 	int cn;
 	int ln;
 	int hn;
-
 	bool isLocked;
 };
