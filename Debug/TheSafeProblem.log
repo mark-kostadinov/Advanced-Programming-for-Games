@@ -1,2 +1,5 @@
 ﻿  Lock.cpp
+  main.cpp
+h:\csc8501 advanced programming for games\thesafeproblem\thesafeproblem\main.cpp(7): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  Generating Code...
   TheSafeProblem.vcxproj -> H:\CSC8501 Advanced Programming for Games\TheSafeProblem\Debug\TheSafeProblem.exe
