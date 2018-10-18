@@ -50,7 +50,7 @@ void Lock::InitializeLock(Lock* leftLock)
 	if (leftLock != NULL)
 	{
 		root = leftLock->GetRoot(); // Same root for all locks in the multi-lock safe
-		UnlockHash(GetFourDigitsFromNumber(leftLock->GetHN()));
+		UnlockHash(leftLock->GetHN());
 		LockHash();
 		PassHash();
 	}
@@ -85,14 +85,13 @@ int Lock::GetNumberFromFourDigits(std::vector<int> digitsVector)
 std::vector<int> Lock::GetFourDigitsFromNumber(const int number)
 {
 	std::vector<int> digitsVector;
+	int digit;
+	std::stringstream ss;
 	std::string temp = std::to_string(number);
 	const char *cstr = temp.c_str();
 
 	for (int i = 0; i < numberOfDigitsPerLock; i++)
 	{
-		int digit;
-		std::stringstream ss;
-
 		if (!isdigit(cstr[i]))
 		{
 			PrintToConsole("Error when trying to convert four digits to a whole number. An input to the digits vector is not a digit.", 1);
@@ -107,13 +106,14 @@ std::vector<int> Lock::GetFourDigitsFromNumber(const int number)
 
 void Lock::GenerateRoot()
 {
-	root = GenerateRandomFourDigitNumber();
+	// The root must be a positive number
+	root = GenerateRandomFourDigits(true);
 }
 
-void Lock::Hash(const std::vector<int> hashDigits, const int* origin, int* derivative)
+void Lock::Hash(const std::vector<int> hashDigits, const std::vector<int>* origin, std::vector<int>* derivative)
 {
 	bool isHashDigitPositive;
-	std::vector<int> originDigits = GetFourDigitsFromNumber(*origin);
+	std::vector<int> originDigits = *origin;
 
 	for (int i = 0; i < numberOfDigitsPerLock; i++)
 	{
@@ -127,7 +127,7 @@ void Lock::Hash(const std::vector<int> hashDigits, const int* origin, int* deriv
 			TurnDigit(originDigits.at(i), hashDigits.at(i), isHashDigitPositive);
 		}
 	}
-	*derivative = GetNumberFromFourDigits(originDigits);
+	*derivative = originDigits;
 }
 
 //void Lock::Hash(const int hash, const int* origin, int* derivative)
@@ -147,6 +147,7 @@ void Lock::Hash(const std::vector<int> hashDigits, const int* origin, int* deriv
 
 void Lock::UnlockHash()
 {
+	/// TODO: CN must not have repeating digits => Change hash if that occurs and redo
 	Hash(cnHash, &root, &cn);
 }
 

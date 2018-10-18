@@ -6,12 +6,12 @@
 constexpr int numberOfDigitsPerLock = 4;
 
 // Random-generation functions
-/// TODO: Add negative digits
+int GenerateRandomPositiveDigit();
 int GenerateRandomDigit();
 
 /// TODO: Add negative numbers
 int GenerateRandomFourDigitNumber();
-std::vector<int> GenerateRandomFourDigits();
+std::vector<int> GenerateRandomFourDigits(bool onlyPositiveDigits = NULL, bool allowZeroFirstDigit = NULL);
 
 const std::vector<int> cnHash = GenerateRandomFourDigits();
 const std::vector<int> lnHash = GenerateRandomFourDigits();

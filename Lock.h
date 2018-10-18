@@ -18,7 +18,7 @@ public:
 	std::vector<int> GetFourDigitsFromNumber(const int number);
 
 	void GenerateRoot();
-	void Hash(const std::vector<int> hashDigits, const int* origin, int* derivative);
+	void Hash(const std::vector<int> hashDigits, const std::vector<int>* origin, std::vector<int>* derivative);
 	void UnlockHash();
 	void UnlockHash(const std::vector<int> hashDigits);
 	void LockHash();
@@ -26,18 +26,18 @@ public:
 
 	Lock* GetLeftLock() const { return left; }
 	void SetLeftLock(Lock* l) { left = l; }
-	int GetRoot() const { return root; }
-	int GetCN() const { return cn; }
-	int GetLN() const { return ln; }
-	int GetHN() const { return hn; }
+	std::vector<int> GetRoot() const { return root; }
+	std::vector<int> GetCN() const { return cn; }
+	std::vector<int> GetLN() const { return ln; }
+	std::vector<int> GetHN() const { return hn; }
 	bool IsLocked() const { return isLocked; }
 	void SetIsLocked(bool b) { isLocked = b; }
 
 protected:
 	Lock* left;
-	int root;
-	int cn;
-	int ln;
-	int hn;
+	std::vector<int> root;
+	std::vector<int> cn;
+	std::vector<int> ln;
+	std::vector<int> hn;
 	bool isLocked;
 };
