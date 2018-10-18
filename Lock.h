@@ -1,9 +1,10 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <sstream>
-#include "definitions.h"
+#include "IOManager.h"
+
+const Number cnHash;
+const Number lnHash;
+const Number hnHash;
 
 class Lock
 {
@@ -14,30 +15,28 @@ public:
 	void TurnDigit(int& digit, int times, bool isDigitPositive);
 	void InitializeLock(Lock* leftLock = NULL);
 	void PressButton();
-	int GetNumberFromFourDigits(std::vector<int> digitsVector);
-	std::vector<int> GetFourDigitsFromNumber(const int number);
 
 	void GenerateRoot();
-	void Hash(const std::vector<int> hashDigits, const std::vector<int>* origin, std::vector<int>* derivative);
+	void Hash(const Number hash, const Number* origin, Number* derivative);
 	void UnlockHash();
-	void UnlockHash(const std::vector<int> hashDigits);
+	void UnlockHash(const Number hash);
 	void LockHash();
 	void PassHash();
 
 	Lock* GetLeftLock() const { return left; }
 	void SetLeftLock(Lock* l) { left = l; }
-	std::vector<int> GetRoot() const { return root; }
-	std::vector<int> GetCN() const { return cn; }
-	std::vector<int> GetLN() const { return ln; }
-	std::vector<int> GetHN() const { return hn; }
+	Number GetRoot() const { return root; }
+	Number GetCN() const { return cn; }
+	Number GetLN() const { return ln; }
+	Number GetHN() const { return hn; }
 	bool IsLocked() const { return isLocked; }
 	void SetIsLocked(bool b) { isLocked = b; }
 
 protected:
 	Lock* left;
-	std::vector<int> root;
-	std::vector<int> cn;
-	std::vector<int> ln;
-	std::vector<int> hn;
+	Number root;
+	Number cn;
+	Number ln;
+	Number hn;
 	bool isLocked;
 };

@@ -115,16 +115,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="definitions.cpp" />
+    <ClCompile Include="IOManager.cpp" />
     <ClCompile Include="Lock.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MultiLockSafe.cpp" />
+    <ClCompile Include="Number.cpp" />
     <ClCompile Include="Safe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="definitions.h" />
+    <ClInclude Include="IOManager.h" />
     <ClInclude Include="Lock.h" />
     <ClInclude Include="MultiLockSafe.h" />
+    <ClInclude Include="Number.h" />
     <ClInclude Include="Safe.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -68,82 +68,31 @@ void Lock::PressButton()
 {
 }
 
-int Lock::GetNumberFromFourDigits(std::vector<int> digitsVector)
-{
-	int multiplier = 1000;
-	int currentNumber = 0;
-
-	for (std::vector<int>::iterator it = digitsVector.begin(); it != digitsVector.end(); it++)
-	{
-		currentNumber += (*it) * multiplier;
-		multiplier /= 10;
-	}
-
-	return currentNumber;
-}
-
-std::vector<int> Lock::GetFourDigitsFromNumber(const int number)
-{
-	std::vector<int> digitsVector;
-	int digit;
-	std::stringstream ss;
-	std::string temp = std::to_string(number);
-	const char *cstr = temp.c_str();
-
-	for (int i = 0; i < numberOfDigitsPerLock; i++)
-	{
-		if (!isdigit(cstr[i]))
-		{
-			PrintToConsole("Error when trying to convert four digits to a whole number. An input to the digits vector is not a digit.", 1);
-		}
-		ss << cstr[i];
-		ss >> digit;
-
-		digitsVector.push_back(digit);
-	}
-	return digitsVector;
-}
-
 void Lock::GenerateRoot()
 {
 	// The root must be a positive number
-	root = GenerateRandomFourDigits(true);
+	root.SetDigits(root.GenerateRandomFourDigits(true));
 }
 
-void Lock::Hash(const std::vector<int> hashDigits, const std::vector<int>* origin, std::vector<int>* derivative)
+void Lock::Hash(const Number hash, const Number* origin, Number* derivative)
 {
 	bool isHashDigitPositive;
-	std::vector<int> originDigits = *origin;
+	std::vector<int> originDigits = origin->GetDigits();
 
 	for (int i = 0; i < numberOfDigitsPerLock; i++)
 	{
-		if (!originDigits.empty() && !hashDigits.empty())
+		if (!originDigits.empty() && !hash.GetDigits().empty())
 		{
-			if (hashDigits.at(i) > 0)
+			if (hash.GetDigits().at(i) > 0)
 				isHashDigitPositive = true;
 			else
 				isHashDigitPositive = false;
 
-			TurnDigit(originDigits.at(i), hashDigits.at(i), isHashDigitPositive);
+			TurnDigit(originDigits.at(i), hash.GetDigits().at(i), isHashDigitPositive);
 		}
 	}
-	*derivative = originDigits;
+	derivative->SetDigits(originDigits);
 }
-
-//void Lock::Hash(const int hash, const int* origin, int* derivative)
-//{
-//	std::vector<int> hashDigits = GetFourDigitsFromNumber(hash);
-//	std::vector<int> originDigits = GetFourDigitsFromNumber(*origin);
-//
-//	for (int i = 0; i < numberOfDigitsPerLock; i++)
-//	{
-//		if (!originDigits.empty() && !hashDigits.empty())
-//		{
-//			TurnDigit(originDigits.at(i), hashDigits.at(i), true);
-//		}
-//	}
-//	*derivative = GetNumberFromFourDigits(originDigits);
-//}
 
 void Lock::UnlockHash()
 {
@@ -151,9 +100,9 @@ void Lock::UnlockHash()
 	Hash(cnHash, &root, &cn);
 }
 
-void Lock::UnlockHash(const std::vector<int> hashDigits)
+void Lock::UnlockHash(const Number hash)
 {
-	Hash(hashDigits, &root, &cn);
+	Hash(hash, &root, &cn);
 }
 
 void Lock::LockHash()
