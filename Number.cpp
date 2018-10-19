@@ -69,9 +69,11 @@ std::vector<int> Number::GenerateRandomFourDigits(bool onlyPositiveDigits, bool 
 	return r;
 }
 
-int Number::GetIntegerFromFourDigits(std::vector<int> digitsVector)
+int Number::GetIntegerFromDigits(std::vector<int> digitsVector)
 {
-	int multiplier = 1000;
+	int multiplier = 1;
+	for (int i = 1; i < digitsVector.size(); i++)
+		multiplier *= 10;
 	int currentNumber = 0;
 
 	for (std::vector<int>::iterator it = digitsVector.begin(); it != digitsVector.end(); it++)

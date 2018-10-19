@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <list>
 #include <string>
 #include <sstream>
 #include <random>
@@ -10,6 +11,7 @@
 #define OUTPUT_DIRECTORY "../Output/"
 
 constexpr int numberOfDigitsPerLock = 4;
+constexpr int numberOfLocksPerSafe = 5;
 
 // Printing out function
 template <typename T>

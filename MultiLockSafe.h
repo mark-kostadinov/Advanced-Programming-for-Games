@@ -1,11 +1,20 @@
 #pragma once
 
-#include "Safe.h"
+#include "Lock.h"
 
-class MultiLockSafe : public Safe
+class MultiLockSafe
 {
 public:
+	MultiLockSafe();
 	MultiLockSafe(int numLocks);
-	virtual ~MultiLockSafe();
+	MultiLockSafe(int numLocks, Number& root, Number& uHash, Number& pHash, Number& lHash);
+	~MultiLockSafe();
+
+	void LockTheSafe();
+
+	std::vector<Lock*> GetCombinationLocksVector() const { return combinationLocksVector; }
+
+protected:
+	std::vector<Lock*> combinationLocksVector;
 };
 

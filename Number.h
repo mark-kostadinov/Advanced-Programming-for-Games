@@ -16,7 +16,7 @@ public:
 	int GenerateRandomFourDigitNumber();
 	std::vector<int> GenerateRandomFourDigits(bool onlyPositiveDigits = NULL, bool allowZeroFirstDigit = NULL);
 
-	int GetIntegerFromFourDigits(std::vector<int> digitsVector);
+	static int GetIntegerFromDigits(std::vector<int> digitsVector);
 	std::vector<int> GetFourDigitsFromInteger(const int number);
 
 	std::vector<int> GetDigits() const { return digits; }

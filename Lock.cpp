@@ -13,6 +13,19 @@ Lock::Lock(Lock* leftLock)
 	SetIsLocked(false);
 }
 
+Lock::Lock(Number& root, Number& uHash, Number& pHash, Number& lHash, Lock * leftLock)
+{
+	if (leftLock != NULL)
+	{
+		SetLeftLock(leftLock);
+		InitializeLock(root, uHash, pHash, lHash, leftLock);
+	}
+	else
+		InitializeLock(root, uHash, pHash, lHash);
+
+	SetIsLocked(false);
+}
+
 Lock::~Lock()
 {
 }
@@ -43,8 +56,7 @@ void Lock::TurnDigit(int & digit, int times, bool isDigitPositive)
 	}
 }
 
-/// TODO: the hash function inputs should be the same for all multi-lock safes but the number for the root should be different each time
-// Different root for each multi-lock safe or different root for each lock? I'm guessing the first one?
+// The hash function inputs should be the same for all multi-lock safes but the root should be different for each multi-lock safe
 void Lock::InitializeLock(Lock* leftLock)
 {
 	if (leftLock != NULL)
@@ -63,6 +75,24 @@ void Lock::InitializeLock(Lock* leftLock)
 	}
 }
 
+void Lock::InitializeLock(Number& root, Number& uHash, Number& pHash, Number& lHash, Lock * leftLock)
+{
+	if (leftLock != NULL)
+	{
+		this->root = leftLock->root; // Same root for all locks in the multi-lock safe
+		UnlockHash(leftLock->GetHN());
+		LockHash(lHash);
+		PassHash(pHash);
+	}
+	else
+	{
+		GenerateRoot(root);
+		UnlockHash(uHash);
+		LockHash(lHash);
+		PassHash(pHash);
+	}
+}
+
 /// TODO: When a button on a combination lock is pressed the lock will either open or remain closed (depending on the combination entered)
 void Lock::PressButton()
 {
@@ -72,6 +102,11 @@ void Lock::GenerateRoot()
 {
 	// The root must be a positive number
 	root.SetDigits(root.GenerateRandomFourDigits(true));
+}
+
+void Lock::GenerateRoot(const Number & root)
+{
+	this->root.SetDigits(root.GetDigits());
 }
 
 void Lock::Hash(const Number hash, const Number* origin, Number* derivative)
@@ -96,13 +131,12 @@ void Lock::Hash(const Number hash, const Number* origin, Number* derivative)
 
 void Lock::UnlockHash()
 {
-	/// TODO: CN must not have repeating digits => Change hash if that occurs and redo
 	Hash(cnHash, &root, &cn);
 }
 
-void Lock::UnlockHash(const Number hash)
+void Lock::UnlockHash(const Number & uHash)
 {
-	Hash(hash, &root, &cn);
+	Hash(uHash, &root, &cn);
 }
 
 void Lock::LockHash()
@@ -110,7 +144,17 @@ void Lock::LockHash()
 	Hash(lnHash, &cn, &ln);
 }
 
+void Lock::LockHash(const Number & lHash)
+{
+	Hash(lHash, &cn, &ln);
+}
+
 void Lock::PassHash()
 {
 	Hash(hnHash, &ln, &hn);
+}
+
+void Lock::PassHash(const Number & pHash)
+{
+	Hash(pHash, &ln, &hn);
 }
