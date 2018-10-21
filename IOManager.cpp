@@ -67,7 +67,7 @@ void IOManager::GenerateKeyFile(const std::string fileName, int solutionCount)
 	for (int i = 0; i < solutionCount; i++)
 	{
 		Number root;
-		root.SetDigits(root.GenerateRandomFourDigits(true));
+		root.SetDigits(Number::GenerateRandomFourDigits(true));
 		int rootInt = root.GetIntegerFromDigits(root.GetDigits());
 		fileData += "ROOT " + ToString(rootInt) + "\n";
 
@@ -84,8 +84,7 @@ void IOManager::GenerateKeyFile(const std::string fileName, int solutionCount)
 	ClearDataString();
 }
 
-void IOManager::ParseKeyFile(const std::string keyFileName, int & solutionCount, std::vector<Number> & roots, std::vector<Number> & uHashes,
-	std::vector<Number> & lHashes, std::vector<Number> & pHashes)
+void IOManager::ParseKeyFile(const std::string keyFileName)
 {
 	ReadFromFile(keyFileName);
 
@@ -103,6 +102,7 @@ void IOManager::ParseKeyFile(const std::string keyFileName, int & solutionCount,
 	Number num;
 	int counter = 0;
 
+	/// TODO: it+=5 less num of hashes (coz they're the same)
 	for (std::list<std::string>::iterator it = lines.begin(); it != lines.end(); it++)
 	{
 		digitsVector = StringToIntegerVector(*it);
@@ -135,11 +135,12 @@ void IOManager::ParseKeyFile(const std::string keyFileName, int & solutionCount,
 	ClearDataString();
 }
 
-void IOManager::GenerateMultiSafeFileHashes(int & solutionCount, std::vector<Number>& roots, std::vector<Number>& uHashes, std::vector<Number>& lHashes, std::vector<Number>& pHashes, std::vector<Number> & cns, std::vector<Number> & lns, std::vector<Number> & hns)
+void IOManager::GenerateMultiSafeFileHashes()
 {
 	for (int i = 0; i < solutionCount; i++)
 	{
-		MultiLockSafe* safe = new MultiLockSafe(numberOfLocksPerSafe, roots.at(i), uHashes.at(i), lHashes.at(i), pHashes.at(i));
+		MultiLockSafe* safe = new MultiLockSafe(numberOfLocksPerSafe);
+		safe->LockTheSafe(roots.at(i), uHashes.at(i), lHashes.at(i), pHashes.at(i));
 
 		for (int j = 0; j < numberOfLocksPerSafe; j++)
 		{
@@ -155,46 +156,51 @@ void IOManager::GenerateMultiSafeFileHashes(int & solutionCount, std::vector<Num
 /// => CN must not have repeating digits => NOT VALID solution output label in the multi-safe file
 /// => Ensure the sum of the digits on the combination lock to the left is less than the sum of the digits of the combination lock to the right
 /// => Ensure that the sum of numbers across all locks is even
-std::vector<std::string> IOManager::CheckMultiSafeFileValidity(int & solutionCount, std::vector<Number>& cns, std::vector<Number>& lns, std::vector<Number>& hns)
+std::vector<std::string> IOManager::CheckMultiSafeFileValidity()
 {
 	std::vector<std::string> validityList;
 	std::string temp;
+	int counter = -1;
+	bool same = false;
 
 	for (std::vector<Number>::iterator it = cns.begin(); it != cns.end(); it++)
 	{
 		if ((*it).GetDigits().at(0) == (*it).GetDigits().at(1) || (*it).GetDigits().at(0) == (*it).GetDigits().at(2) ||
 			(*it).GetDigits().at(0) == (*it).GetDigits().at(3) || (*it).GetDigits().at(1) == (*it).GetDigits().at(2) ||
 			(*it).GetDigits().at(1) == (*it).GetDigits().at(3) || (*it).GetDigits().at(2) == (*it).GetDigits().at(3))
-			temp = "NOT VALID\n";
-		else
-			temp = "VALID\n";
+			same = true;
 
-		validityList.push_back(temp);
+		if (it - cns.begin() == counter + numberOfLocksPerSafe)
+		{
+			if (same)
+				temp = "NOT VALID\n";
+			else
+				temp = "VALID\n";
+			validityList.push_back(temp);
+			counter = it - cns.begin();
+			same = false;
+		}
 	}
-
 	return validityList;
 }
 
-void IOManager::WriteMultiSafeFile(const std::string multiSafeFileName, int & solutionCount, std::vector<Number> & roots, std::vector<Number> & uHashes, std::vector<Number> & lHashes, std::vector<Number> & pHashes)
+void IOManager::WriteMultiSafeFile(const std::string multiSafeFileName)
 {
-	std::vector<Number> cns;
-	std::vector<Number> lns;
-	std::vector<Number> hns;
+	GenerateMultiSafeFileHashes();
+	std::vector<std::string> validityList = CheckMultiSafeFileValidity();
 
-	GenerateMultiSafeFileHashes(solutionCount, roots, uHashes, lHashes, pHashes, cns, lns, hns);
-	std::vector<std::string> validityList = CheckMultiSafeFileValidity(solutionCount, cns, lns, hns);
-
-	fileData += "NS " + std::to_string(solutionCount) + "\n";
+	fileData += "NS " + std::to_string(solutionCount) + " ";
 
 	for (int i = 0; i < solutionCount; i++)
 	{
+		/// TODO: try catch if validityList.size() != solutionCount
 		fileData += validityList.at(i);
 
 		for (int j = 0; j < numberOfLocksPerSafe; j++)
 		{
-			fileData += "CN" + std::to_string(j) + " " + std::to_string(cns.at(i).GetIntegerFromDigits(cns.at(i).GetDigits())) + ",";
-			fileData += "LN" + std::to_string(j) + " " + std::to_string(lns.at(i).GetIntegerFromDigits(lns.at(i).GetDigits())) + ",";
-			fileData += "HN" + std::to_string(j) + " " + std::to_string(hns.at(i).GetIntegerFromDigits(hns.at(i).GetDigits())) + ",\n";
+			fileData += "CN" + std::to_string(j) + " " + Number::GetStringFromDigits(cns.at(i * numberOfLocksPerSafe + j).GetDigits()) + ", ";
+			fileData += "LN" + std::to_string(j) + " " + Number::GetStringFromDigits(lns.at(i * numberOfLocksPerSafe + j).GetDigits()) + ", ";
+			fileData += "HN" + std::to_string(j) + " " + Number::GetStringFromDigits(hns.at(i * numberOfLocksPerSafe + j).GetDigits()) + ",\n";
 		}
 	}
 	WriteToFile(multiSafeFileName);
@@ -203,21 +209,15 @@ void IOManager::WriteMultiSafeFile(const std::string multiSafeFileName, int & so
 
 void IOManager::GenerateMultiSafeFile(const std::string keyFileName, const std::string multiSafeFileName)
 {
-	int solutionCount;
-	std::vector<Number> roots;
-	std::vector<Number> uHashes;
-	std::vector<Number> lHashes;
-	std::vector<Number> pHashes;
-
-	ParseKeyFile(keyFileName, solutionCount, roots, uHashes, lHashes, pHashes);
-	WriteMultiSafeFile(multiSafeFileName, solutionCount, roots, uHashes, lHashes, pHashes);
+	ParseKeyFile(keyFileName);
+	WriteMultiSafeFile(multiSafeFileName);
 }
 
 std::vector<int> IOManager::StringToIntegerVector(std::string string)
 {
 	const char* cstr = string.c_str();
 	std::vector<int> digitsVector;
-	std::stringstream ss;
+	std::stringstream parser;
 	int digit;
 
 	for (int i = 0; i < (int)string.size(); i++)
@@ -228,10 +228,10 @@ std::vector<int> IOManager::StringToIntegerVector(std::string string)
 				digitsVector.push_back(0);
 			else
 			{
-				/// TODO: Fix this
-				ss << cstr[i];
-				ss >> digit;
-				//digit = atoi(&cstr[i]);
+				parser << cstr[i];
+				parser >> digit;
+				parser.str(std::string());
+				parser.clear();
 
 				if (cstr[i - 1] == '-')
 					digitsVector.push_back(-digit);

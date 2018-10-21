@@ -5,23 +5,10 @@ Lock::Lock(Lock* leftLock)
 	if (leftLock != NULL)
 	{
 		SetLeftLock(leftLock);
-		InitializeLock(leftLock);
+		root = leftLock->GetRoot(); // Same root for all locks in a multi-lock safe
 	}
 	else
-		InitializeLock();
-
-	SetIsLocked(false);
-}
-
-Lock::Lock(Number& root, Number& uHash, Number& pHash, Number& lHash, Lock * leftLock)
-{
-	if (leftLock != NULL)
-	{
-		SetLeftLock(leftLock);
-		InitializeLock(root, uHash, pHash, lHash, leftLock);
-	}
-	else
-		InitializeLock(root, uHash, pHash, lHash);
+		GenerateRoot();
 
 	SetIsLocked(false);
 }
@@ -31,12 +18,14 @@ Lock::~Lock()
 }
 
 // Each digit of the combination lock may be turned in sequence one movement at a time
-void Lock::TurnDigit(int & digit, int times, bool isDigitPositive)
+void Lock::TurnDigit(int & digit, int times)
 {
+	int absTimes = abs(times);
+
 	// A positive number will turn a dial downwards and a negative number will turn a dial upwards
-	if (!isDigitPositive)
+	if (times < 0)
 	{
-		for (times; times > 0; times--)
+		for (absTimes; absTimes > 0; absTimes--)
 		{
 			if (digit == 9)
 				digit = 0;
@@ -46,7 +35,7 @@ void Lock::TurnDigit(int & digit, int times, bool isDigitPositive)
 	}
 	else
 	{
-		for (times; times > 0; times--)
+		for (absTimes; absTimes > 0; absTimes--)
 		{
 			if (digit == 0)
 				digit = 9;
@@ -56,105 +45,93 @@ void Lock::TurnDigit(int & digit, int times, bool isDigitPositive)
 	}
 }
 
-// The hash function inputs should be the same for all multi-lock safes but the root should be different for each multi-lock safe
-void Lock::InitializeLock(Lock* leftLock)
+/// TODO: The hash function inputs should be the same for all multi-lock safes but the root should be different for each multi-lock safe
+void Lock::LockTheLock()
 {
-	if (leftLock != NULL)
-	{
-		root = leftLock->GetRoot(); // Same root for all locks in the multi-lock safe
-		UnlockHash(leftLock->GetHN());
-		LockHash();
-		PassHash();
-	}
+	if (GetLeftLock() != NULL)
+		GenerateUnlockHash(GetLeftLock()->GetHN());
 	else
-	{
-		GenerateRoot();
-		UnlockHash();
-		LockHash();
-		PassHash();
-	}
+		GenerateUnlockHash();
+	GenerateLockHash();
+	GeneratePassHash();
+
+	SetIsLocked(true);
 }
 
-void Lock::InitializeLock(Number& root, Number& uHash, Number& pHash, Number& lHash, Lock * leftLock)
+// If the default root and hasher values have to be overridden
+void Lock::LockTheLock(Number & root, Number & uHash, Number & lHash, Number & pHash)
 {
-	if (leftLock != NULL)
+	if (GetLeftLock() != NULL)
 	{
-		this->root = leftLock->root; // Same root for all locks in the multi-lock safe
-		UnlockHash(leftLock->GetHN());
-		LockHash(lHash);
-		PassHash(pHash);
+		this->root = GetLeftLock()->root; // Same root for all locks in a multi-lock safe
+		GenerateUnlockHash(GetLeftLock()->GetHN());
 	}
 	else
 	{
-		GenerateRoot(root);
-		UnlockHash(uHash);
-		LockHash(lHash);
-		PassHash(pHash);
+		SetRoot(root);
+		GenerateUnlockHash(uHash);
 	}
+	GenerateLockHash(lHash);
+	GeneratePassHash(pHash);
+
+	SetIsLocked(true);
 }
 
 /// TODO: When a button on a combination lock is pressed the lock will either open or remain closed (depending on the combination entered)
-void Lock::PressButton()
+void Lock::PressButton(const Number guess)
 {
 }
 
 void Lock::GenerateRoot()
 {
 	// The root must be a positive number
-	root.SetDigits(root.GenerateRandomFourDigits(true));
+	root.SetDigits(Number::GenerateRandomFourDigits(true));
 }
 
-void Lock::GenerateRoot(const Number & root)
+void Lock::GenerateHash(const Number hash, const Number* origin, Number* derivative)
 {
-	this->root.SetDigits(root.GetDigits());
-}
-
-void Lock::Hash(const Number hash, const Number* origin, Number* derivative)
-{
-	bool isHashDigitPositive;
+	/// TODO: try catch origin != NULL
 	std::vector<int> originDigits = origin->GetDigits();
 
 	for (int i = 0; i < numberOfDigitsPerLock; i++)
 	{
 		if (!originDigits.empty() && !hash.GetDigits().empty())
-		{
-			if (hash.GetDigits().at(i) > 0)
-				isHashDigitPositive = true;
-			else
-				isHashDigitPositive = false;
-
-			TurnDigit(originDigits.at(i), hash.GetDigits().at(i), isHashDigitPositive);
-		}
+			TurnDigit(originDigits.at(i), hash.GetDigits().at(i));
 	}
 	derivative->SetDigits(originDigits);
 }
 
-void Lock::UnlockHash()
+void Lock::GenerateUnlockHash()
 {
-	Hash(cnHash, &root, &cn);
+	GenerateHash(cnHash, &root, &cn);
 }
 
-void Lock::UnlockHash(const Number & uHash)
+void Lock::GenerateUnlockHash(const Number & uHash)
 {
-	Hash(uHash, &root, &cn);
+	GenerateHash(uHash, &root, &cn);
 }
 
-void Lock::LockHash()
+void Lock::GenerateLockHash()
 {
-	Hash(lnHash, &cn, &ln);
+	GenerateHash(lnHash, &cn, &ln);
 }
 
-void Lock::LockHash(const Number & lHash)
+void Lock::GenerateLockHash(const Number & lHash)
 {
-	Hash(lHash, &cn, &ln);
+	GenerateHash(lHash, &cn, &ln);
 }
 
-void Lock::PassHash()
+void Lock::GeneratePassHash()
 {
-	Hash(hnHash, &ln, &hn);
+	GenerateHash(hnHash, &ln, &hn);
 }
 
-void Lock::PassHash(const Number & pHash)
+void Lock::GeneratePassHash(const Number & pHash)
 {
-	Hash(pHash, &ln, &hn);
+	GenerateHash(pHash, &ln, &hn);
+}
+
+void Lock::SetRoot(const Number & root)
+{
+	this->root.SetDigits(root.GetDigits());
 }

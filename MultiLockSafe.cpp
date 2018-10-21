@@ -12,26 +12,9 @@ MultiLockSafe::MultiLockSafe(int numLocks)
 	{
 		Lock* newLock;
 		if (i == 0)
-		{
 			newLock = new Lock();
-		}
 		else
-			newLock = new Lock(combinationLocksVector.at(i));
-		combinationLocksVector.push_back(newLock);
-	}
-}
-
-MultiLockSafe::MultiLockSafe(int numLocks, Number& root, Number& uHash, Number& pHash, Number& lHash)
-{
-	for (int i = 0; i < numLocks; i++)
-	{
-		Lock* newLock;
-		if (i == 0)
-		{
-			newLock = new Lock(root, uHash, pHash, lHash);
-		}
-		else
-			newLock = new Lock(root, uHash, pHash, lHash, combinationLocksVector.at(i));
+			newLock = new Lock(combinationLocksVector.at(i - 1));
 		combinationLocksVector.push_back(newLock);
 	}
 }
@@ -46,15 +29,21 @@ MultiLockSafe::~MultiLockSafe()
 	combinationLocksVector.clear();
 }
 
-/// TODO: A multi-lock safe consists of a series of 5 combination locks and to lock a safe each combination lock must be locked in turn (lock 0 first through to lock 4)
+// A multi-lock safe consists of a series of 5 combination locks and to lock a safe each combination lock must be locked in turn (lock 0 first through to lock 4)
 void MultiLockSafe::LockTheSafe()
 {
-	// Reverse iteration required due to the leftmost Lock being at the end of the vector
-	for (std::vector<Lock*>::reverse_iterator it = combinationLocksVector.rbegin(); it != combinationLocksVector.rend(); it++)
+	for (std::vector<Lock*>::iterator it = combinationLocksVector.begin(); it != combinationLocksVector.end(); it++)
 	{
-		//(*it)->LockTheLock();
+		while (!(*it)->IsLocked())
+			(*it)->LockTheLock();
+	}
+}
 
-		//if (!(*it)->IsLocked())
-			// Repeat
+void MultiLockSafe::LockTheSafe(Number & root, Number & uHash, Number & lHash, Number & pHash)
+{
+	for (std::vector<Lock*>::iterator it = combinationLocksVector.begin(); it != combinationLocksVector.end(); it++)
+	{
+		while (!(*it)->IsLocked())
+			(*it)->LockTheLock(root, uHash, lHash, pHash);
 	}
 }

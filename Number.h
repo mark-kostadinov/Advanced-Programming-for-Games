@@ -11,13 +11,14 @@ public:
 	friend std::ostream & operator << (std::ostream &out, const Number &number);
 
 	// Random-generation functions
-	int GenerateRandomPositiveDigit();
-	int GenerateRandomDigit();
-	int GenerateRandomFourDigitNumber();
-	std::vector<int> GenerateRandomFourDigits(bool onlyPositiveDigits = NULL, bool allowZeroFirstDigit = NULL);
-
+	static int GenerateRandomPositiveDigit();
+	static int GenerateRandomDigit();
+	static int GenerateRandomFourDigitNumber();
+	static std::vector<int> GenerateRandomFourDigits(bool onlyPositiveDigits = NULL, bool allowZeroFirstDigit = NULL);
+	// Conversion functions
+	static std::vector<int> GetFourDigitsFromInteger(const int number);
 	static int GetIntegerFromDigits(std::vector<int> digitsVector);
-	std::vector<int> GetFourDigitsFromInteger(const int number);
+	static std::string GetStringFromDigits(std::vector<int> digitsVector);
 
 	std::vector<int> GetDigits() const { return digits; }
 	void SetDigits(std::vector<int> d) { digits = d; }

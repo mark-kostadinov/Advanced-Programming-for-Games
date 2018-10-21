@@ -2,7 +2,6 @@
 
 Number::Number()
 {
-	digits = GenerateRandomFourDigits();
 }
 
 Number::~Number()
@@ -69,21 +68,6 @@ std::vector<int> Number::GenerateRandomFourDigits(bool onlyPositiveDigits, bool 
 	return r;
 }
 
-int Number::GetIntegerFromDigits(std::vector<int> digitsVector)
-{
-	int multiplier = 1;
-	for (int i = 1; i < digitsVector.size(); i++)
-		multiplier *= 10;
-	int currentNumber = 0;
-
-	for (std::vector<int>::iterator it = digitsVector.begin(); it != digitsVector.end(); it++)
-	{
-		currentNumber += (*it) * multiplier;
-		multiplier /= 10;
-	}
-	return currentNumber;
-}
-
 std::vector<int> Number::GetFourDigitsFromInteger(const int number)
 {
 	std::vector<int> digitsVector;
@@ -104,4 +88,30 @@ std::vector<int> Number::GetFourDigitsFromInteger(const int number)
 		digitsVector.push_back(digit);
 	}
 	return digitsVector;
+}
+
+int Number::GetIntegerFromDigits(std::vector<int> digitsVector)
+{
+	int multiplier = 1;
+	for (int i = 1; i < (int)digitsVector.size(); i++)
+		multiplier *= 10;
+	int currentNumber = 0;
+
+	for (std::vector<int>::iterator it = digitsVector.begin(); it != digitsVector.end(); it++)
+	{
+		currentNumber += (*it) * multiplier;
+		multiplier /= 10;
+	}
+	return currentNumber;
+}
+
+std::string Number::GetStringFromDigits(std::vector<int> digitsVector)
+{
+	std::string result;
+
+	for (std::vector<int>::iterator it = digitsVector.begin(); it != digitsVector.end(); it++)
+	{
+		result += ToString(*it);
+	}
+	return result;
 }

@@ -1,6 +1,10 @@
 #include <time.h>
 #include "IOManager.h"
 
+/// 1. Is having multiple duplicates of CN, LN and HN values in the multi_safe file (due to the hash functions) a problem?
+/// 2. Should I stick to the stack allocation approach or switch to heap-based?
+/// 3. Add file headers (author, description, etc.)
+
 int main()
 {
 	// Initialize the pseudo-random generator to a distinctive runtime value
@@ -37,6 +41,7 @@ int main()
 	///// if all is OK =>
 	//PrintToConsole("\nKey file successfully created!", 1);
 
+	//io.GenerateKeyFile("key_file.txt", 100);
 	io.GenerateMultiSafeFile("key_file.txt", "multi_safe_file.txt");
 
 	int exit;

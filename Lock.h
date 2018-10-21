@@ -10,27 +10,26 @@ class Lock
 {
 public:
 	Lock(Lock* leftLock = NULL);
-	Lock(Number& root, Number& uHash, Number& pHash, Number& lHash, Lock* leftLock = NULL);
 	virtual ~Lock();
 
-	void TurnDigit(int& digit, int times, bool isDigitPositive);
-	void InitializeLock(Lock* leftLock = NULL);
-	void InitializeLock(Number& root, Number& uHash, Number& pHash, Number& lHash, Lock* leftLock = NULL);
-	void PressButton();
+	void TurnDigit(int& digit, int times);
+	void LockTheLock();
+	void LockTheLock(Number& root, Number& uHash, Number& lHash, Number& pHash);
+	void PressButton(const Number guess);
 
 	void GenerateRoot();
-	void GenerateRoot(const Number & root);
-	void Hash(const Number hash, const Number* origin, Number* derivative);
-	void UnlockHash();
-	void UnlockHash(const Number & uHash);
-	void LockHash();
-	void LockHash(const Number & lHash);
-	void PassHash();
-	void PassHash(const Number & pHash);
+	void GenerateHash(const Number hash, const Number* origin, Number* derivative);
+	void GenerateUnlockHash();
+	void GenerateUnlockHash(const Number & uHash);
+	void GenerateLockHash();
+	void GenerateLockHash(const Number & lHash);
+	void GeneratePassHash();
+	void GeneratePassHash(const Number & pHash);
 
 	Lock* GetLeftLock() const { return left; }
 	void SetLeftLock(Lock* l) { left = l; }
 	Number GetRoot() const { return root; }
+	void SetRoot(const Number & root);
 	Number GetCN() const { return cn; }
 	Number GetLN() const { return ln; }
 	Number GetHN() const { return hn; }
