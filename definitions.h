@@ -9,6 +9,8 @@
 
 #define INPUT_DIRECTORY "../Input/"
 #define OUTPUT_DIRECTORY "../Output/"
+#define NOT_VALID "NOT VALID\n"
+#define VALID "VALID\n"
 
 constexpr int numberOfDigitsPerLock = 4;
 constexpr int numberOfLocksPerSafe = 5;

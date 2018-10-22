@@ -49,7 +49,7 @@ void Lock::TurnDigit(int & digit, int times)
 void Lock::LockTheLock()
 {
 	if (GetLeftLock() != NULL)
-		GenerateUnlockHash(GetLeftLock()->GetHN());
+		GenerateUnlockHash();
 	else
 		GenerateUnlockHash();
 	GenerateLockHash();
@@ -64,7 +64,7 @@ void Lock::LockTheLock(Number & root, Number & uHash, Number & lHash, Number & p
 	if (GetLeftLock() != NULL)
 	{
 		this->root = GetLeftLock()->root; // Same root for all locks in a multi-lock safe
-		GenerateUnlockHash(GetLeftLock()->GetHN());
+		GenerateUnlockHash(uHash, GetLeftLock()->GetHN());
 	}
 	else
 	{
@@ -78,13 +78,26 @@ void Lock::LockTheLock(Number & root, Number & uHash, Number & lHash, Number & p
 }
 
 /// TODO: When a button on a combination lock is pressed the lock will either open or remain closed (depending on the combination entered)
-void Lock::PressButton(const Number guess)
+void Lock::UnlockTheLock(const Number & guess)
 {
+	if (Number::GetStringFromDigits(guess.GetDigits()) == Number::GetStringFromDigits(GetCN().GetDigits()))
+	{
+		SetIsLocked(false);
+		PrintToConsole("Successfully unlocked one of the locks!", 1);
+	}
+	else
+		PrintToConsole("Wrong combination entered. Try again.", 1);
+}
+
+/// TODO:
+void Lock::PrintLockNumber()
+{
+	PrintToConsole("Lock number: " + Number::GetStringFromDigits(GetLN().GetDigits()), 1);
 }
 
 void Lock::GenerateRoot()
 {
-	// The root must be a positive number
+	// The root cannot have negative digits
 	root.SetDigits(Number::GenerateRandomFourDigits(true));
 }
 
@@ -103,12 +116,21 @@ void Lock::GenerateHash(const Number hash, const Number* origin, Number* derivat
 
 void Lock::GenerateUnlockHash()
 {
-	GenerateHash(cnHash, &root, &cn);
+	if (GetLeftLock() != NULL)
+		GenerateHash(cnHash, &GetLeftLock()->GetHN(), &cn);
+	else
+		GenerateHash(cnHash, &root, &cn);
 }
 
 void Lock::GenerateUnlockHash(const Number & uHash)
 {
 	GenerateHash(uHash, &root, &cn);
+}
+
+void Lock::GenerateUnlockHash(const Number & uHash, const Number & leftHN)
+{
+	if (GetLeftLock() != NULL)
+		GenerateHash(uHash, &leftHN, &cn);
 }
 
 void Lock::GenerateLockHash()

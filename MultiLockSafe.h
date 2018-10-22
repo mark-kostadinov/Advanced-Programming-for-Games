@@ -11,6 +11,7 @@ public:
 
 	void LockTheSafe();
 	void LockTheSafe(Number& root, Number& uHash, Number& lHash, Number& pHash);
+	void UnlockTheSafe();
 
 	std::vector<Lock*> GetCombinationLocksVector() const { return combinationLocksVector; }
 

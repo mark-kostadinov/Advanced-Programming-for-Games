@@ -15,12 +15,14 @@ public:
 	void TurnDigit(int& digit, int times);
 	void LockTheLock();
 	void LockTheLock(Number& root, Number& uHash, Number& lHash, Number& pHash);
-	void PressButton(const Number guess);
+	void UnlockTheLock(const Number & guess);
+	void PrintLockNumber();
 
 	void GenerateRoot();
 	void GenerateHash(const Number hash, const Number* origin, Number* derivative);
 	void GenerateUnlockHash();
 	void GenerateUnlockHash(const Number & uHash);
+	void GenerateUnlockHash(const Number & uHash, const Number & leftHN);
 	void GenerateLockHash();
 	void GenerateLockHash(const Number & lHash);
 	void GeneratePassHash();

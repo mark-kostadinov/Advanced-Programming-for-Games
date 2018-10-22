@@ -20,9 +20,12 @@ public:
 	void GenerateKeyFile(const std::string fileName, int solutionCount);
 	void GenerateMultiSafeFile(const std::string keyFileName, const std::string multiSafeFileName);
 	std::vector<int> StringToIntegerVector(std::string string);
+	void GenerateLockedSafeFile(const std::string lockedSafeFileName);
 
 	int GetSolutionCount() const { return solutionCount; }
 	void SetSolutionCount(int i) { solutionCount = i; }
+	int GetLockedSolutionCount() const { return lockedSolutionsCount; }
+	void SetLockedSolutionCount(int i) { lockedSolutionsCount = i; }
 
 	std::vector<Number> GetRoots() const { return roots; }
 	std::vector<Number> GetUHashes() const { return uHashes; }
@@ -31,6 +34,7 @@ public:
 	std::vector<Number> GetCNs() const { return cns; }
 	std::vector<Number> GetLNs() const { return lns; }
 	std::vector<Number> GetHNs() const { return hns; }
+	std::vector<std::string> GetValidityList() const { return validityList; }
 
 protected:
 	void OpenFile(const std::string fileName, FileType type);
@@ -38,15 +42,17 @@ protected:
 	void SplitData(std::list<std::string> & line, const std::string & fileData);
 	void ParseKeyFile(const std::string keyFileName);
 	void GenerateMultiSafeFileHashes();
-	std::vector<std::string> CheckMultiSafeFileValidity();
+	void CheckMultiSafeFileValidity(std::vector<std::string> & validityList);
 	void WriteMultiSafeFile(const std::string multiSafeFileName);
 	void ClearDataString();
 
 	std::ifstream inFile;
 	std::ofstream outFile;
 	std::string fileData;
+	std::string lockedFileData;
 
 	int solutionCount;
+	int lockedSolutionsCount;
 
 	std::vector<Number> roots;
 	std::vector<Number> uHashes;
@@ -55,5 +61,6 @@ protected:
 	std::vector<Number> cns;
 	std::vector<Number> lns;
 	std::vector<Number> hns;
+	std::vector<std::string> validityList;
 };
 

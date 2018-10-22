@@ -47,3 +47,32 @@ void MultiLockSafe::LockTheSafe(Number & root, Number & uHash, Number & lHash, N
 			(*it)->LockTheLock(root, uHash, lHash, pHash);
 	}
 }
+
+/// TODO:
+void MultiLockSafe::UnlockTheSafe()
+{
+	char ans;
+
+	for (std::vector<Lock*>::iterator it = combinationLocksVector.begin(); it != combinationLocksVector.end(); it++)
+	{
+		while ((*it)->IsLocked())
+		{
+			(*it)->PrintLockNumber();
+			PrintToConsole("Please enter your guess for the combination number: ", 1);
+			int guess;
+			std::cin >> guess;
+			/// TODO: try catch if guess != valid int
+			Number num;
+			num.SetDigits(Number::GetFourDigitsFromInteger(guess));
+			(*it)->UnlockTheLock(num);
+			PrintToConsole("Would you like to quit? (y/n)", 1);
+			std::cin >> ans;
+			if (ans == 'y')
+				break;
+		}
+	}
+	if (ans == 'y')
+		PrintToConsole("Better luck next time!", 1);
+	else
+		PrintToConsole("Successfully unlocked the whole safe!", 1);
+}
