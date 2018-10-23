@@ -13,7 +13,9 @@ std::ostream & operator<<(std::ostream & out, const Number & number)
 {
 	for (int i = 0; i < numberOfDigitsPerLock; i++)
 	{
-		if (number.GetDigits().at(i) > 0)
+		if (number.GetDigits().at(i) == 0)
+			out << " " << number.GetDigits().at(i) << ",";
+		else if (number.GetDigits().at(i) > 0)
 			out << "+" << number.GetDigits().at(i) << ",";
 		else
 			out << number.GetDigits().at(i) << ",";
@@ -79,9 +81,16 @@ std::vector<int> Number::GetFourDigitsFromInteger(const int number)
 
 	for (int i = 0; i < numberOfDigitsPerLock; i++)
 	{
-		if (!isdigit(cstr[i]))
+		try
 		{
-			PrintToConsole("Error when trying to convert four digits to a whole number. An input to the digits vector is not a digit.", 1);
+			if (!isdigit(cstr[i]))
+			{
+				throw ("\nError when trying to convert four digits to a whole number. An input to the digits vector is not a digit.");
+			}
+		}
+		catch (const char* msg)
+		{
+			std::cerr << msg << std::endl;
 		}
 		ss << cstr[i];
 		ss >> digit;

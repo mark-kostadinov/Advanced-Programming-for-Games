@@ -7,14 +7,14 @@
 #include <sstream>
 #include <random>
 
-#define INPUT_DIRECTORY "../Input/"
-#define OUTPUT_DIRECTORY "../Output/"
+#define FILE_IO_DIRECTORY "../FileIO/"
 #define NOT_VALID "NOT VALID\n"
 #define VALID "VALID\n"
-#define FILE_FORMAT ".txt"
+#define FILE_FORMAT "txt"
+#define DOT_FILE_FORMAT ".txt"
 
 constexpr int numberOfDigitsPerLock = 4;
-int numberOfLocksPerSafe = 5;
+extern int numberOfLocksPerSafe;
 
 // Printing out function
 template <typename T>

@@ -1,10 +1,9 @@
 #include <time.h>
 #include "IOManager.h"
 
-/// 1. Add exception checks for file I/O
-/// 2. Should I stick to the stack allocation approach or switch to heap-based? => I think I will need some heap allocation for runtime checks 
+/// 1. Should I stick to the stack allocation approach or switch to heap-based? => I think I will need some heap allocation for runtime checks 
 /// of the safes during the second part of the coursework.
-/// 3. Add file headers (author, description, etc.)
+/// 2. Add file headers (author, description, etc.)
 
 int main()
 {
@@ -28,10 +27,6 @@ int main()
 	//	}
 	//	PrintToConsole("", 1);
 	//}
-
-	//io.GenerateKeyFile("key_file.txt", 100);
-	//io.GenerateMultiSafeFile("key_file.txt", "multi_safe_file.txt");
-	//io.GenerateLockedSafeFile("locked_safe_file.txt");
 
 	// Pretty 1-dimensional but does the job
 	io.ChangeNumberOfLocksPerSafe();

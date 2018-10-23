@@ -60,8 +60,12 @@ void MultiLockSafe::UnlockTheSafe()
 			(*it)->PrintLockNumber();
 			PrintToConsole("Please enter your guess for the combination number: ", 1);
 			int guess;
-			std::cin >> guess;
-			/// TODO: try catch if guess != valid int
+			while (!(std::cin >> guess) || guess < 0)
+			{
+				PrintToConsole("\nYour guess was not correct. Try again: ", 1);
+				std::cin.clear();
+				std::cin.ignore(INT_MAX, '\n');
+			}
 			Number num;
 			num.SetDigits(Number::GetFourDigitsFromInteger(guess));
 			(*it)->UnlockTheLock(num);

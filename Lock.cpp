@@ -45,7 +45,6 @@ void Lock::TurnDigit(int & digit, int times)
 	}
 }
 
-/// TODO: The hash function inputs should be the same for all multi-lock safes but the root should be different for each multi-lock safe
 void Lock::LockTheLock()
 {
 	if (GetLeftLock() != NULL)
@@ -103,7 +102,19 @@ void Lock::GenerateRoot()
 
 void Lock::GenerateHash(const Number hash, const Number* origin, Number* derivative)
 {
-	/// TODO: try catch origin != NULL
+	try
+	{
+		if (origin == NULL)
+		{
+			throw ("\nThe origin Number which the program is trying to generate a hash on is NULL!");
+		}
+	}
+	catch (const char* msg)
+	{
+		std::cerr << msg << std::endl;
+		exit(1);
+	}
+
 	std::vector<int> originDigits = origin->GetDigits();
 
 	for (int i = 0; i < numberOfDigitsPerLock; i++)
