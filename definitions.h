@@ -11,9 +11,10 @@
 #define OUTPUT_DIRECTORY "../Output/"
 #define NOT_VALID "NOT VALID\n"
 #define VALID "VALID\n"
+#define FILE_FORMAT ".txt"
 
 constexpr int numberOfDigitsPerLock = 4;
-constexpr int numberOfLocksPerSafe = 5;
+int numberOfLocksPerSafe = 5;
 
 // Printing out function
 template <typename T>

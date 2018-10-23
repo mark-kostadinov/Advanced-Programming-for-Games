@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <stdexcept>
 #include "Number.h"
 #include "MultiLockSafe.h"
 
@@ -21,6 +22,14 @@ public:
 	void GenerateMultiSafeFile(const std::string keyFileName, const std::string multiSafeFileName);
 	std::vector<int> StringToIntegerVector(std::string string);
 	void GenerateLockedSafeFile(const std::string lockedSafeFileName);
+	void UnlockLockedSafeFile(const std::string lockedSafeFileName);
+
+	void ChangeNumberOfLocksPerSafe();
+	void GenerateKeyFileUI();
+	void VerifyFileFormat(std::string & fileName);
+	void GenerateMultiSafeFileUI();
+	void GenerateLockedSafeFileUI();
+	void UnlockSafesUI();
 
 	int GetSolutionCount() const { return solutionCount; }
 	void SetSolutionCount(int i) { solutionCount = i; }
@@ -38,13 +47,13 @@ public:
 
 protected:
 	void OpenFile(const std::string fileName, FileType type);
-	void PrintFileError(const std::string fileName);
 	void SplitData(std::list<std::string> & line, const std::string & fileData);
 	void ParseKeyFile(const std::string keyFileName);
+	void ParseLockedSafeFile(const std::string lockedSafeFileName);
 	void GenerateMultiSafeFileHashes();
 	void CheckMultiSafeFileValidity(std::vector<std::string> & validityList);
 	void WriteMultiSafeFile(const std::string multiSafeFileName);
-	void ClearDataString();
+	void ClearDataString(std::string & dataString);
 
 	std::ifstream inFile;
 	std::ofstream outFile;

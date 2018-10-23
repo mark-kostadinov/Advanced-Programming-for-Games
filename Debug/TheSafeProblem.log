@@ -1,2 +1,6 @@
-﻿  MultiLockSafe.cpp
-  TheSafeProblem.vcxproj -> H:\CSC8501 Advanced Programming for Games\TheSafeProblem\Debug\TheSafeProblem.exe
+﻿  IOManager.cpp
+Lock.obj : error LNK2005: "int numberOfLocksPerSafe" (?numberOfLocksPerSafe@@3HA) already defined in IOManager.obj
+main.obj : error LNK2005: "int numberOfLocksPerSafe" (?numberOfLocksPerSafe@@3HA) already defined in IOManager.obj
+MultiLockSafe.obj : error LNK2005: "int numberOfLocksPerSafe" (?numberOfLocksPerSafe@@3HA) already defined in IOManager.obj
+Number.obj : error LNK2005: "int numberOfLocksPerSafe" (?numberOfLocksPerSafe@@3HA) already defined in IOManager.obj
+H:\CSC8501 Advanced Programming for Games\TheSafeProblem\Debug\TheSafeProblem.exe : fatal error LNK1169: one or more multiply defined symbols found

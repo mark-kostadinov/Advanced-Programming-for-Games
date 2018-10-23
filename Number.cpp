@@ -2,6 +2,7 @@
 
 Number::Number()
 {
+	digits = GenerateRandomFourDigits();
 }
 
 Number::~Number()
