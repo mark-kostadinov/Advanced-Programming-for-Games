@@ -4,6 +4,7 @@ MultiLockSafe::MultiLockSafe()
 {
 	Lock* defaultLock = new Lock();
 	combinationLocksVector.push_back(defaultLock);
+	isLocked = false;
 }
 
 MultiLockSafe::MultiLockSafe(int numLocks)
@@ -17,6 +18,7 @@ MultiLockSafe::MultiLockSafe(int numLocks)
 			newLock = new Lock(combinationLocksVector.at(i - 1));
 		combinationLocksVector.push_back(newLock);
 	}
+	isLocked = false;
 }
 
 MultiLockSafe::~MultiLockSafe()
@@ -37,6 +39,7 @@ void MultiLockSafe::LockTheSafe()
 		while (!(*it)->IsLocked())
 			(*it)->LockTheLock();
 	}
+	isLocked = true;
 }
 
 void MultiLockSafe::LockTheSafe(Number & root, Number & uHash, Number & lHash, Number & pHash)
@@ -46,37 +49,57 @@ void MultiLockSafe::LockTheSafe(Number & root, Number & uHash, Number & lHash, N
 		while (!(*it)->IsLocked())
 			(*it)->LockTheLock(root, uHash, lHash, pHash);
 	}
+	isLocked = true;
 }
 
-/// TODO:
-void MultiLockSafe::UnlockTheSafe()
+void MultiLockSafe::UnlockTheSafe(std::vector<Number> & lockedLNs, std::vector<Number> & unlockedLNs)
 {
-	char ans;
-
 	for (std::vector<Lock*>::iterator it = combinationLocksVector.begin(); it != combinationLocksVector.end(); it++)
 	{
-		while ((*it)->IsLocked())
+		try
 		{
-			(*it)->PrintLockNumber();
-			PrintToConsole("Please enter your guess for the combination number: ", 1);
-			int guess;
-			while (!(std::cin >> guess) || guess < 0)
+#ifdef DEBUG
+			PrintToConsole("Locked File Lock number: " + Number::GetStringFromDigits(lockedLNs.at(lockedLNcounter).GetDigits()), 1);
+#endif // DEBUG
+			if (!unlockedLNs.empty() && unlockedLNs.size() != numberOfLocksPerSafe)
 			{
-				PrintToConsole("\nYour guess was not correct. Try again: ", 1);
-				std::cin.clear();
-				std::cin.ignore(INT_MAX, '\n');
+				for (auto innerIt = unlockedLNs.begin(); innerIt != unlockedLNs.end(); innerIt++)
+				{
+					// If a Lock is already unlocked, go to the next one
+					(*it)->GetLN().SetDigits((*innerIt).GetDigits());
+					it++;
+				}
 			}
-			Number num;
-			num.SetDigits(Number::GetFourDigitsFromInteger(guess));
-			(*it)->UnlockTheLock(num);
-			PrintToConsole("Would you like to quit? (y/n)", 1);
-			std::cin >> ans;
-			if (ans == 'y')
+#ifdef DEBUG
+			PrintToConsole("Generated Lock number guess: " + Number::GetStringFromDigits((*it)->GetLN().GetDigits()), 1);
+#endif // DEBUG
+		}
+		catch (const std::out_of_range& oor)
+		{
+			std::string exceptionString = "Out of range exception caught: ";
+			exceptionString += oor.what();
+			PrintToConsole(exceptionString, 1);
+			exit(1);
+		}
+		// If the lock is not unlocked go back and try again
+		if (!(*it)->UnlockTheLock(lockedLNs.at(lockedLNcounter)))
+			return;
+		if (it != combinationLocksVector.end())
+		{
+			// Get the deduced lock number and use it next time as an input to the LN.at(i)
+			unlockedLNs.push_back((*it)->GetLN());
+			lockedLNcounter++;
+			// Unlock the safe every *numberOfLocksPerSafe* successful iterations
+			if (lockedLNcounter != 0 && (lockedLNcounter % numberOfLocksPerSafe == 0))
 				break;
+			return;
 		}
 	}
-	if (ans == 'y')
-		PrintToConsole("Better luck next time!", 1);
-	else
-		PrintToConsole("Successfully unlocked the whole safe!", 1);
+	SetIsLocked(false);
+}
+
+void MultiLockSafe::UnlockAllLocks()
+{
+	for (std::vector<Lock*>::iterator it = combinationLocksVector.begin(); it != combinationLocksVector.end(); it++)
+		(*it)->SetIsLocked(false);
 }

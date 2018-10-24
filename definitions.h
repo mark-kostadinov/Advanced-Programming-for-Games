@@ -7,6 +7,7 @@
 #include <sstream>
 #include <random>
 
+#define DEBUG
 #define FILE_IO_DIRECTORY "../FileIO/"
 #define NOT_VALID "NOT VALID\n"
 #define VALID "VALID\n"
@@ -15,6 +16,7 @@
 
 constexpr int numberOfDigitsPerLock = 4;
 extern int numberOfLocksPerSafe;
+extern int lockedLNcounter;
 
 // Printing out function
 template <typename T>

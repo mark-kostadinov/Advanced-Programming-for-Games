@@ -76,22 +76,16 @@ void Lock::LockTheLock(Number & root, Number & uHash, Number & lHash, Number & p
 	SetIsLocked(true);
 }
 
-/// TODO: When a button on a combination lock is pressed the lock will either open or remain closed (depending on the combination entered)
-void Lock::UnlockTheLock(const Number & guess)
+// When a button on a combination lock is pressed the lock will either open or remain closed (depending on the combination entered)
+bool Lock::UnlockTheLock(const Number & guess)
 {
-	if (Number::GetStringFromDigits(guess.GetDigits()) == Number::GetStringFromDigits(GetCN().GetDigits()))
+	if (Number::GetStringFromDigits(guess.GetDigits()) == Number::GetStringFromDigits(GetLN().GetDigits()))
 	{
 		SetIsLocked(false);
-		PrintToConsole("Successfully unlocked one of the locks!", 1);
+		return true;
 	}
 	else
-		PrintToConsole("Wrong combination entered. Try again.", 1);
-}
-
-/// TODO:
-void Lock::PrintLockNumber()
-{
-	PrintToConsole("Lock number: " + Number::GetStringFromDigits(GetLN().GetDigits()), 1);
+		return false;
 }
 
 void Lock::GenerateRoot()
@@ -105,9 +99,7 @@ void Lock::GenerateHash(const Number hash, const Number* origin, Number* derivat
 	try
 	{
 		if (origin == NULL)
-		{
 			throw ("\nThe origin Number which the program is trying to generate a hash on is NULL!");
-		}
 	}
 	catch (const char* msg)
 	{

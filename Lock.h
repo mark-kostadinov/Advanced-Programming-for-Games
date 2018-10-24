@@ -15,8 +15,7 @@ public:
 	void TurnDigit(int& digit, int times);
 	void LockTheLock();
 	void LockTheLock(Number& root, Number& uHash, Number& lHash, Number& pHash);
-	void UnlockTheLock(const Number & guess);
-	void PrintLockNumber();
+	bool UnlockTheLock(const Number & guess);
 
 	void GenerateRoot();
 	void GenerateHash(const Number hash, const Number* origin, Number* derivative);

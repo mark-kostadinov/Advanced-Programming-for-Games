@@ -1,7 +1,2 @@
 ﻿  IOManager.cpp
-  Lock.cpp
-  MultiLockSafe.cpp
-  Number.cpp
-  main.cpp
-  Generating Code...
   TheSafeProblem.vcxproj -> H:\CSC8501 Advanced Programming for Games\TheSafeProblem\Debug\TheSafeProblem.exe

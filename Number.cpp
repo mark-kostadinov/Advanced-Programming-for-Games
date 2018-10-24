@@ -47,6 +47,27 @@ int Number::GenerateRandomFourDigitNumber()
 	return r;
 }
 
+std::vector<int> Number::GenerateRandomFourNonDuplicateDigits()
+{
+	std::vector<int> r;
+	int digit;
+
+	for (int i = 0; i < numberOfDigitsPerLock; i++)
+	{
+		digit = GenerateRandomDigit();
+		for (auto it = r.begin(); it != r.end(); it++)
+		{
+			while (!(abs(digit) != abs(*it)))
+			{
+				digit = GenerateRandomDigit();
+				it = r.begin();
+			}
+		}
+		r.push_back(digit);
+	}
+	return r;
+}
+
 std::vector<int> Number::GenerateRandomFourDigits(bool onlyPositiveDigits, bool allowZeroFirstDigit)
 {
 	std::vector<int> r;

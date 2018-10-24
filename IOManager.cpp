@@ -1,6 +1,7 @@
 #include "IOManager.h"
 
 int numberOfLocksPerSafe = 5;
+int lockedLNcounter = 0;
 
 IOManager::IOManager()
 {
@@ -75,8 +76,13 @@ void IOManager::ReadFromFile(const std::string fileName)
 
 	// Copy the data in while the file is open, there is still more content that has not been covered and we have not reached its end
 	if (inFile.is_open())
+	{
 		while (getline(inFile, line) && !inFile.eof())
+		{
+			if (line == "") continue; // Skip blank line
 			fileData += line + "\n";
+		}
+	}
 	inFile.close();
 }
 
@@ -164,21 +170,28 @@ void IOManager::ParseLockedSafeFile(const std::string lockedSafeFileName)
 	// Then continue with the rest of the file
 	Number num;
 	int counter = 0;
+	int k = 0;
 
 	for (std::list<std::string>::iterator it = lines.begin(); it != lines.end(); it++)
 	{
-		digitsVector = StringToIntegerVector(*it);
+		digitsVector = StringToIntegerVector((*it).substr((*it).length() - 6, (*it).length()));
 		num.SetDigits(digitsVector);
 
 		switch (counter)
 		{
 		case 0:
-			locked_roots.push_back(num);
+			roots.push_back(num);
 			counter++;
 			break;
 		case 1:
-			locked_lns.push_back(num);
-			counter = 0;
+			lns.push_back(num);
+			if (k < numberOfLocksPerSafe)
+				k++;
+			else
+			{
+				k = 0;
+				counter = 0;
+			}
 			break;
 		default:
 			PrintToConsole("\nSomething went wrong while trying to parse the locked_safe file.", 1);
@@ -338,42 +351,11 @@ void IOManager::GenerateLockedSafeFile(const std::string lockedSafeFileName)
 	ClearDataString(fileData);
 }
 
-/// TODO:
 void IOManager::UnlockLockedSafeFile(const std::string lockedSafeFileName)
 {
-	/// The key is something to do with the fact that the hashes for each safe are the same for all locks.
-
-	/// TODO:
-	/// 1. Read from a locked_file.txt [DONE]
-	/// 2. Get the number of solutions from it and create a for loop with that much safes [DONE]
-	/// 3. Try to unlock each one via the help of a user interface and some kind of algorithm to generate a safe's first lock's CN
-	/// 4. Get candidate solutions (the first lock's CN) and narrow them to the smallest possible number of candidates
-
+	ClearDataStructures();
 	ParseLockedSafeFile(lockedSafeFileName);
-
-	/// I've got the LockedRoots from the locked_safe file. I need to determine the appropriate uHashes, lHashes and pHashes are to input 
-	/// in the function below to generate the same LN values as these from the file, which in turn will reveal the CN values
-	/// and then you just UnlockTheSafe(LockedCNs.at(i)) => UnlockTheLock(CN.at(i)) to unlock all the locks in a safe 
-	/// => Therefore all safes and finally get a 'Success' message.
-
-	for (int i = 0; i < solutionCount; i++)
-	{
-		//MultiLockSafe* safe = new MultiLockSafe(numberOfLocksPerSafe);
-		//safe->LockTheSafe(GetLockedRoots().at(0), GetLockedUHashes().at(0), GetLockedLHashes().at(0), GetLockedPHashes().at(0)); /// How to get these?
-
-		std::string temp = "\nWould you like to try and unlock safe ";
-		temp += std::to_string(i);
-		temp += " out of ";
-		temp += std::to_string(solutionCount);
-		temp += "? (y/n)";
-		PrintToConsole(temp, 1);
-		char ans;
-		std::cin >> ans;
-		//if (ans == 'y')
-		//	safe->UnlockTheSafe();
-
-		//delete safe;
-	}
+	UnlockUsingRNG();
 }
 
 void IOManager::ChangeNumberOfLocksPerSafe()
@@ -479,6 +461,28 @@ void IOManager::UnlockSafesUI()
 
 		UnlockLockedSafeFile(lockedSafeFileName);
 		PrintToConsole("\nLocked_safe file successfully unlocked!", 1);
+
+		//=====================================
+
+		std::string keyFileName;
+
+		PrintToConsole("\nEnter the name of the key file you wish to write to: ", 1);
+		std::cin >> keyFileName;
+		VerifyFileFormat(keyFileName);
+
+		GenerateKeyFileFromLockedFile(keyFileName);
+		PrintToConsole("\nKey file from locked file successfully created!", 1);
+
+		//======================================
+
+		std::string multiSafeFileName;
+
+		PrintToConsole("\nEnter the name of the multi_safe file you wish to write to: ", 1);
+		std::cin >> multiSafeFileName;
+		VerifyFileFormat(multiSafeFileName);
+
+		GenerateMultiSafeFile(keyFileName, multiSafeFileName);
+		PrintToConsole("\nMulti_safe file from locked file successfully created!", 1);
 	}
 }
 
@@ -527,6 +531,110 @@ std::string IOManager::GetLastThreeCharsFromString(const std::string & string)
 void IOManager::ClearDataString(std::string & dataString)
 {
 	dataString = "";
+}
+
+void IOManager::ClearDataStructures()
+{
+	roots.clear();
+	uHashes.clear();
+	lHashes.clear();
+	pHashes.clear();
+	cns.clear();
+	lns.clear();
+	hns.clear();
+	validityList.clear();
+}
+
+void IOManager::UnlockUsingRNG()
+{
+	PrintToConsole("\nDecyphering...", 1);
+
+	for (int i = 0; i < solutionCount; i++)
+	{
+		int j = 0;
+		bool finished = false;
+		MultiLockSafe* safe = new MultiLockSafe(numberOfLocksPerSafe);
+		std::vector<Number> unlockedLNs;
+
+		while (!finished)
+		{
+			/// TODO: Add time counter
+		//again:
+			Number temp;
+			temp.SetDigits(Number::GenerateRandomFourDigits());
+			lockedUHashes.push_back(temp);
+			temp.SetDigits(Number::GenerateRandomFourDigits());
+			lockedLHashes.push_back(temp);
+			temp.SetDigits(Number::GenerateRandomFourDigits());
+			lockedPHashes.push_back(temp);
+
+			safe->LockTheSafe(roots.at(i), lockedUHashes.at(j), lockedLHashes.at(j), lockedPHashes.at(j));
+
+			/// Method to discard all invalid CNs => more checks, runs slower tho
+			//if (lockedCNs.size() > 0)
+			//	lockedCNs.clear();
+			//for (int k = 0; k < numberOfLocksPerSafe; k++)
+			//	lockedCNs.push_back(safe->GetCombinationLocksVector().at(k)->GetCN());
+
+			//for (std::vector<Number>::iterator it = lockedCNs.begin(); it != lockedCNs.end(); it++)
+			//{
+			//	// CNs must not have repeating digits
+			//	if ((*it).GetDigits().at(0) == (*it).GetDigits().at(1) || (*it).GetDigits().at(0) == (*it).GetDigits().at(2) ||
+			//		(*it).GetDigits().at(0) == (*it).GetDigits().at(3) || (*it).GetDigits().at(1) == (*it).GetDigits().at(2) ||
+			//		(*it).GetDigits().at(1) == (*it).GetDigits().at(3) || (*it).GetDigits().at(2) == (*it).GetDigits().at(3))
+			//	{
+			//		PrintToConsole("LockedCN at fault: " + Number::GetStringFromDigits((*it).GetDigits()), 1);
+			//		lockedCNs.clear();
+			//		lockedUHashes.pop_back();
+			//		lockedLHashes.pop_back();
+			//		lockedPHashes.pop_back();
+			//		safe->UnlockAllLocks();
+			//		goto again;
+			//	}
+			//}
+
+			safe->UnlockTheSafe(lns, unlockedLNs);
+			/// When it unlocks for the first time, capture the hashes and use them afterwards
+
+			j++;
+
+			// If the safe is unlocked by the UnlockTheSafe(), we're done
+			if (!safe->IsLocked())
+				finished = true;
+			else // Unlock all the locks inside it, so they could be locked/hashed again with new values in the next iteration
+				safe->UnlockAllLocks();
+		}
+		for (int k = 0; k < numberOfLocksPerSafe; k++)
+			cns.push_back(safe->GetCombinationLocksVector().at(k)->GetCN());
+		/// TODO: The hashes are cleared and the ones that are printed in the file are not the real ones => How to actually get them??
+		uHashes.push_back(lockedUHashes.at(j - 1));
+		lHashes.push_back(lockedLHashes.at(j - 1));
+		pHashes.push_back(lockedPHashes.at(j - 1));
+
+		GetLockedUHashes().clear();
+		GetLockedLHashes().clear();
+		GetLockedPHashes().clear();
+		unlockedLNs.clear();
+
+		delete safe;
+		safe = NULL;
+	}
+	lockedLNcounter = 0;
+}
+
+void IOManager::GenerateKeyFileFromLockedFile(const std::string fileName)
+{
+	fileData += "NS " + std::to_string(solutionCount) + "\n";
+
+	for (int i = 0; i < solutionCount; i++)
+	{
+		fileData += "ROOT " + Number::GetStringFromDigits(roots.at(i).GetDigits()) + "\n";
+		fileData += "UHF " + ToString(uHashes.at(i)) + "\n";
+		fileData += "LHF " + ToString(lHashes.at(i)) + "\n";
+		fileData += "PHF " + ToString(pHashes.at(i)) + "\n";
+	}
+	WriteToFile(fileName);
+	ClearDataString(fileData);
 }
 
 void IOManager::SplitData(std::list<std::string>& line, const std::string & fileData)

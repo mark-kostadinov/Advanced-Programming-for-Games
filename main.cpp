@@ -1,9 +1,8 @@
 #include <time.h>
 #include "IOManager.h"
 
-/// 1. Should I stick to the stack allocation approach or switch to heap-based? => I think I will need some heap allocation for runtime checks 
-/// of the safes during the second part of the coursework.
-/// 2. Add file headers (author, description, etc.)
+/// --> Not all solutions are valid after being decyphered - that should be normal?
+/// --> Add file headers (author, description, etc.)
 
 int main()
 {
@@ -29,10 +28,10 @@ int main()
 	//}
 
 	// Pretty 1-dimensional but does the job
-	io.ChangeNumberOfLocksPerSafe();
-	io.GenerateKeyFileUI();
-	io.GenerateMultiSafeFileUI();
-	io.GenerateLockedSafeFileUI();
+	//io.ChangeNumberOfLocksPerSafe();
+	//io.GenerateKeyFileUI();
+	//io.GenerateMultiSafeFileUI();
+	//io.GenerateLockedSafeFileUI();
 	io.UnlockSafesUI();
 
 	int exit;

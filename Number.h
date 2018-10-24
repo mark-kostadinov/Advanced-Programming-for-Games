@@ -15,6 +15,7 @@ public:
 	static int GenerateRandomDigit();
 	static int GenerateRandomFourDigitNumber();
 	static std::vector<int> GenerateRandomFourDigits(bool onlyPositiveDigits = NULL, bool allowZeroFirstDigit = NULL);
+	static std::vector<int> GenerateRandomFourNonDuplicateDigits();
 	// Conversion functions
 	static std::vector<int> GetFourDigitsFromInteger(const int number);
 	static int GetIntegerFromDigits(std::vector<int> digitsVector);
