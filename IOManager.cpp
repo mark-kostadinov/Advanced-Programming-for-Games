@@ -1,3 +1,4 @@
+// Code written for CSC8501 by Mark Kostadinov, Student Number 150368616
 #include "IOManager.h"
 
 int numberOfLocksPerSafe = 5;
@@ -17,46 +18,32 @@ void IOManager::OpenFile(const std::string fileName, FileType type)
 {
 	if (type == READ_IN)
 	{
-		inFile.open(FILE_IO_DIRECTORY + fileName);
-		if (!inFile || inFile.fail())
+		try
 		{
-			throw std::ifstream::failure("An ifstream::failure error was caught while trying to open " + fileName + "\n");
+			inFile.open(FILE_IO_DIRECTORY + fileName);
+			if (!inFile || inFile.fail())
+				throw std::runtime_error("Could not open file.");
+		}
+		catch (const std::runtime_error& rte)
+		{
+			PrintToConsole("A runtime error was caught while trying to open " + fileName + "\n" + "Explanatory string: " + rte.what() + "\n");
 			exit(1);
 		}
 	}
 	else if (type == WRITE_OUT)
 	{
-		outFile.open(FILE_IO_DIRECTORY + fileName);
-		if (!outFile || outFile.fail())
+		try
 		{
-			throw std::ofstream::failure("An ofstream::failure error was caught while trying to open " + fileName + "\n");
+			outFile.open(FILE_IO_DIRECTORY + fileName);
+			if (!outFile || outFile.fail())
+				throw std::runtime_error("Could not open file.");
+		}
+		catch (const std::runtime_error& rte)
+		{
+			PrintToConsole("A runtime error was caught while trying to open " + fileName + "\n" + "Explanatory string: " + rte.what() + "\n");
 			exit(1);
 		}
 	}
-
-	/// TODO: Catch block never executes => the file which is trying to execute on does not exist => the program crashes
-	//	try
-	//	{
-	//		inFile.open(FILE_IO_DIRECTORY + fileName);
-	//	}
-	//	catch (const std::ifstream::failure& e)
-	//	{
-	//		throw std::ifstream::failure("An ifstream::failure error was caught while trying to open " + fileName + "\n" + "Explanatory string: " + e.what() + "\n");
-	// exit(1);
-	//	}
-	//}
-	//else if (type == WRITE_OUT)
-	//{
-	//	try
-	//	{
-	//		outFile.open(FILE_IO_DIRECTORY + fileName);
-	//	}
-	//	catch (const std::ofstream::failure& e)
-	//	{
-	//		throw std::ofstream::failure("An ofstream::failure error was caught while trying to open " + fileName + "\n" + "Explanatory string: " + e.what() + "\n");
-	// exit(1);
-	//	}
-	//}
 }
 
 void IOManager::WriteToFile(const std::string fileName)
@@ -86,27 +73,74 @@ void IOManager::ReadFromFile(const std::string fileName)
 	inFile.close();
 }
 
-void IOManager::GenerateKeyFile(const std::string fileName, int solutionCount)
+void IOManager::GenerateKeyFile(const std::string fileName, int solutionCount, const bool onlyValidSolutions)
 {
 	Number root;
+	std::vector<Number> validRoots;
 	Number uHash;
 	Number lHash;
 	Number pHash;
+
+	root.SetDigits(Number::GenerateRandomFourDigits(true));
+	uHash.SetDigits(Number::GenerateRandomFourDigits());
+	lHash.SetDigits(Number::GenerateRandomFourDigits());
+	pHash.SetDigits(Number::GenerateRandomFourDigits());
+
+	if (onlyValidSolutions)
+	{
+		MultiLockSafe safe(numberOfLocksPerSafe);
+		safe.LockTheSafe(root, uHash, lHash, pHash);
+
+		while (!safe.IsSafeValid(onlyValidSolutions))
+		{
+			root.SetDigits(Number::GenerateRandomFourDigits(true));
+			uHash.SetDigits(Number::GenerateRandomFourDigits());
+			lHash.SetDigits(Number::GenerateRandomFourDigits());
+			pHash.SetDigits(Number::GenerateRandomFourDigits());
+
+			safe.UnlockAllLocks();
+			safe.LockTheSafe(root, uHash, lHash, pHash);
+		}
+		validRoots.push_back(root);
+		int counter = 1;
+
+		while (counter < solutionCount)
+		{
+			root.SetDigits(Number::GenerateRandomFourDigits(true));
+			safe.UnlockAllLocks();
+			safe.LockTheSafe(root, uHash, lHash, pHash);
+
+			while (!safe.IsSafeValid(onlyValidSolutions))
+			{
+				root.SetDigits(Number::GenerateRandomFourDigits(true));
+
+				safe.UnlockAllLocks();
+				safe.LockTheSafe(root, uHash, lHash, pHash);
+			}
+			validRoots.push_back(root);
+			counter++;
+		}
+	}
 
 	fileData += "NS " + std::to_string(solutionCount) + "\n";
 
 	for (int i = 0; i < solutionCount; i++)
 	{
-		root.SetDigits(Number::GenerateRandomFourDigits(true));
-		fileData += "ROOT " + Number::GetStringFromDigits(root.GetDigits()) + "\n";
+		if (onlyValidSolutions)
+			fileData += "ROOT " + Number::GetStringFromDigits(validRoots.at(i).GetDigits()) + "\n";
+		else
+		{
+			root.SetDigits(Number::GenerateRandomFourDigits(true));
+			fileData += "ROOT " + Number::GetStringFromDigits(root.GetDigits()) + "\n";
+		}
 
-		uHash.SetDigits(Number::GenerateRandomFourDigits());
+		//uHash.SetDigits(Number::GenerateRandomFourDigits());
 		fileData += "UHF " + ToString(uHash) + "\n";
 
-		lHash.SetDigits(Number::GenerateRandomFourDigits());
+		//lHash.SetDigits(Number::GenerateRandomFourDigits());
 		fileData += "LHF " + ToString(lHash) + "\n";
 
-		pHash.SetDigits(Number::GenerateRandomFourDigits());
+		//pHash.SetDigits(Number::GenerateRandomFourDigits());
 		fileData += "PHF " + ToString(pHash) + "\n";
 	}
 	WriteToFile(fileName);
@@ -170,7 +204,7 @@ void IOManager::ParseLockedSafeFile(const std::string lockedSafeFileName)
 	// Then continue with the rest of the file
 	Number num;
 	int counter = 0;
-	int k = 0;
+	int k = 1;
 
 	for (std::list<std::string>::iterator it = lines.begin(); it != lines.end(); it++)
 	{
@@ -189,7 +223,7 @@ void IOManager::ParseLockedSafeFile(const std::string lockedSafeFileName)
 				k++;
 			else
 			{
-				k = 0;
+				k = 1;
 				counter = 0;
 			}
 			break;
@@ -229,39 +263,47 @@ void IOManager::GenerateMultiSafeFileHashes()
 }
 
 // Use the generated multi-safe file to identify if each entry is or is not a valid output given the requirements:
-/// TODO: Ensure the sum of the digits on the combination lock to the left is less than the sum of the digits of the combination lock to the right
-/// TODO: Ensure that the sum of numbers across all locks is even
-void IOManager::CheckMultiSafeFileValidity(std::vector<std::string> & validityList)
+// --> A CN must not have repeating numbers;
+// --> Ensure the sum of the digits on the combination lock to the left is less than the sum of the digits of the combination lock to the right;
+/// TODO: Ensure that the sum of numbers across all locks is even (function exists in Number.h but not implemented below)
+void IOManager::CheckMultiSafeFileValidity(std::vector<std::string> & validityList, const bool hasBonusMultiSafe)
 {
-	std::string temp;
+	std::string temp = VALID;
 	int counter = -1;
-	bool same = false;
 
 	for (std::vector<Number>::iterator it = cns.begin(); it != cns.end(); it++)
 	{
-		// CNs must not have repeating digits
-		if ((*it).GetDigits().at(0) == (*it).GetDigits().at(1) || (*it).GetDigits().at(0) == (*it).GetDigits().at(2) ||
-			(*it).GetDigits().at(0) == (*it).GetDigits().at(3) || (*it).GetDigits().at(1) == (*it).GetDigits().at(2) ||
-			(*it).GetDigits().at(1) == (*it).GetDigits().at(3) || (*it).GetDigits().at(2) == (*it).GetDigits().at(3))
-			same = true;
-
+		if (hasBonusMultiSafe)
+		{
+			if (Number::HasDuplicateDigits(*it))
+				temp = NOT_VALID;
+			if (it == cns.end())
+			{
+				if (Number::IsSumOfDigitsBigger(*(it - 1), (*it)))
+					temp = NOT_VALID;
+			}
+			else if (Number::IsSumOfDigitsBigger((*it), (*(it + 1))))
+				temp = NOT_VALID;
+		}
+		else
+		{
+			if (Number::HasDuplicateDigits(*it))
+				temp = NOT_VALID;
+		}
+		// Every *numOfLocksPerSafe* iteration
 		if (it - cns.begin() == counter + numberOfLocksPerSafe)
 		{
-			if (same)
-				temp = NOT_VALID;
-			else
-				temp = VALID;
 			validityList.push_back(temp);
 			counter = it - cns.begin();
-			same = false;
+			temp = VALID;
 		}
 	}
 }
 
-void IOManager::WriteMultiSafeFile(const std::string multiSafeFileName)
+void IOManager::WriteMultiSafeFile(const std::string multiSafeFileName, const bool hasBonusMultiSafe)
 {
 	GenerateMultiSafeFileHashes();
-	CheckMultiSafeFileValidity(validityList);
+	CheckMultiSafeFileValidity(validityList, hasBonusMultiSafe);
 
 	fileData += "NS " + std::to_string(solutionCount) + " ";
 	std::string tempLockedSolutions;
@@ -306,10 +348,10 @@ void IOManager::WriteMultiSafeFile(const std::string multiSafeFileName)
 	ClearDataString(fileData);
 }
 
-void IOManager::GenerateMultiSafeFile(const std::string keyFileName, const std::string multiSafeFileName)
+void IOManager::GenerateMultiSafeFile(const std::string keyFileName, const std::string multiSafeFileName, const bool hasBonusMultiSafe)
 {
 	ParseKeyFile(keyFileName);
-	WriteMultiSafeFile(multiSafeFileName);
+	WriteMultiSafeFile(multiSafeFileName, hasBonusMultiSafe);
 }
 
 std::vector<int> IOManager::StringToIntegerVector(std::string string)
@@ -351,11 +393,11 @@ void IOManager::GenerateLockedSafeFile(const std::string lockedSafeFileName)
 	ClearDataString(fileData);
 }
 
-void IOManager::UnlockLockedSafeFile(const std::string lockedSafeFileName)
+void IOManager::UnlockLockedSafeFile(const std::string lockedSafeFileName, const bool hasBonusMultiSafe)
 {
 	ClearDataStructures();
 	ParseLockedSafeFile(lockedSafeFileName);
-	UnlockUsingRNG();
+	UnlockUsingRNG(hasBonusMultiSafe);
 }
 
 void IOManager::ChangeNumberOfLocksPerSafe()
@@ -388,6 +430,7 @@ void IOManager::GenerateKeyFileUI()
 	{
 		std::string keyFileName;
 		int solutionCount;
+		bool onlyValidSolutions = false;
 
 		PrintToConsole("\nEnter the name of the key file you wish to write to: ", 1);
 		std::cin >> keyFileName;
@@ -400,7 +443,11 @@ void IOManager::GenerateKeyFileUI()
 			std::cin.clear();
 			std::cin.ignore(INT_MAX, '\n');
 		}
-		GenerateKeyFile(keyFileName, solutionCount);
+		PrintToConsole("\nWould you like these to only be valid (a.k.a. apply bonus multi-safe combination rules)? (y/n)", 1);
+		std::cin >> ans;
+		if (ans == 'y')
+			onlyValidSolutions = true;
+		GenerateKeyFile(keyFileName, solutionCount, onlyValidSolutions);
 		PrintToConsole("\nKey file successfully created!", 1);
 	}
 }
@@ -414,16 +461,20 @@ void IOManager::GenerateMultiSafeFileUI()
 	{
 		std::string keyFileName;
 		std::string multiSafeFileName;
-
+		bool hasBonusMultiSafe;
 		PrintToConsole("\nEnter the name of the key file you wish to read in: ", 1);
 		std::cin >> keyFileName;
 		VerifyFileFormat(keyFileName);
-
 		PrintToConsole("\nEnter the name of the multi_safe file you wish to write to: ", 1);
 		std::cin >> multiSafeFileName;
 		VerifyFileFormat(multiSafeFileName);
-
-		GenerateMultiSafeFile(keyFileName, multiSafeFileName);
+		PrintToConsole("\nWould you like to apply bonus multi-safe combination rules? (y/n)", 1);
+		std::cin >> ans;
+		if (ans == 'y')
+			hasBonusMultiSafe = true;
+		else
+			hasBonusMultiSafe = false;
+		GenerateMultiSafeFile(keyFileName, multiSafeFileName, hasBonusMultiSafe);
 		PrintToConsole("\nMulti_safe file successfully created!", 1);
 	}
 }
@@ -436,17 +487,15 @@ void IOManager::GenerateLockedSafeFileUI()
 	if (ans == 'y')
 	{
 		std::string lockedSafeFileName;
-
 		PrintToConsole("\nEnter the name of the locked_safe file you wish to write to: ", 1);
 		std::cin >> lockedSafeFileName;
 		VerifyFileFormat(lockedSafeFileName);
-
 		GenerateLockedSafeFile(lockedSafeFileName);
 		PrintToConsole("\nLocked_safe file successfully created!", 1);
 	}
 }
 
-void IOManager::UnlockSafesUI()
+void IOManager::UnlockSafeFileUI()
 {
 	PrintToConsole("\nWould you like to unlock a locked_safe file? (y/n)", 1);
 	char ans;
@@ -454,33 +503,34 @@ void IOManager::UnlockSafesUI()
 	if (ans == 'y')
 	{
 		std::string lockedSafeFileName;
-
+		bool hasBonusMultiSafe;
 		PrintToConsole("\nEnter the name of the locked_safe file you wish to read from: ", 1);
 		std::cin >> lockedSafeFileName;
 		VerifyFileFormat(lockedSafeFileName);
-
-		UnlockLockedSafeFile(lockedSafeFileName);
+		PrintToConsole("\nWould you like to apply bonus multi-safe combination rules? (y/n) \n*** Warning: This can take a very long time! ***", 1);
+		std::cin >> ans;
+		if (ans == 'y')
+			hasBonusMultiSafe = true;
+		else
+			hasBonusMultiSafe = false;
+		UnlockLockedSafeFile(lockedSafeFileName, hasBonusMultiSafe);
 		PrintToConsole("\nLocked_safe file successfully unlocked!", 1);
 
 		//=====================================
 
 		std::string keyFileName;
-
 		PrintToConsole("\nEnter the name of the key file you wish to write to: ", 1);
 		std::cin >> keyFileName;
 		VerifyFileFormat(keyFileName);
-
 		GenerateKeyFileFromLockedFile(keyFileName);
 		PrintToConsole("\nKey file from locked file successfully created!", 1);
 
 		//======================================
 
 		std::string multiSafeFileName;
-
 		PrintToConsole("\nEnter the name of the multi_safe file you wish to write to: ", 1);
 		std::cin >> multiSafeFileName;
 		VerifyFileFormat(multiSafeFileName);
-
 		GenerateMultiSafeFile(keyFileName, multiSafeFileName);
 		PrintToConsole("\nMulti_safe file from locked file successfully created!", 1);
 	}
@@ -545,7 +595,7 @@ void IOManager::ClearDataStructures()
 	validityList.clear();
 }
 
-void IOManager::UnlockUsingRNG()
+void IOManager::UnlockUsingRNG(const bool hasBonusMultiSafe)
 {
 	PrintToConsole("\nDecyphering...", 1);
 
@@ -559,7 +609,6 @@ void IOManager::UnlockUsingRNG()
 		while (!finished)
 		{
 			/// TODO: Add time counter
-		//again:
 			Number temp;
 			temp.SetDigits(Number::GenerateRandomFourDigits());
 			lockedUHashes.push_back(temp);
@@ -569,51 +618,33 @@ void IOManager::UnlockUsingRNG()
 			lockedPHashes.push_back(temp);
 
 			safe->LockTheSafe(roots.at(i), lockedUHashes.at(j), lockedLHashes.at(j), lockedPHashes.at(j));
+			safe->UnlockTheSafe(lns, hasBonusMultiSafe);
 
-			/// Method to discard all invalid CNs => more checks, runs slower tho
-			//if (lockedCNs.size() > 0)
-			//	lockedCNs.clear();
-			//for (int k = 0; k < numberOfLocksPerSafe; k++)
-			//	lockedCNs.push_back(safe->GetCombinationLocksVector().at(k)->GetCN());
-
-			//for (std::vector<Number>::iterator it = lockedCNs.begin(); it != lockedCNs.end(); it++)
-			//{
-			//	// CNs must not have repeating digits
-			//	if ((*it).GetDigits().at(0) == (*it).GetDigits().at(1) || (*it).GetDigits().at(0) == (*it).GetDigits().at(2) ||
-			//		(*it).GetDigits().at(0) == (*it).GetDigits().at(3) || (*it).GetDigits().at(1) == (*it).GetDigits().at(2) ||
-			//		(*it).GetDigits().at(1) == (*it).GetDigits().at(3) || (*it).GetDigits().at(2) == (*it).GetDigits().at(3))
-			//	{
-			//		PrintToConsole("LockedCN at fault: " + Number::GetStringFromDigits((*it).GetDigits()), 1);
-			//		lockedCNs.clear();
-			//		lockedUHashes.pop_back();
-			//		lockedLHashes.pop_back();
-			//		lockedPHashes.pop_back();
-			//		safe->UnlockAllLocks();
-			//		goto again;
-			//	}
-			//}
-
-			safe->UnlockTheSafe(lns, unlockedLNs);
-			/// When it unlocks for the first time, capture the hashes and use them afterwards
-
-			j++;
-
-			// If the safe is unlocked by the UnlockTheSafe(), we're done
+			// When it unlocks, capture the hashes to output afterwards
 			if (!safe->IsLocked())
-				finished = true;
-			else // Unlock all the locks inside it, so they could be locked/hashed again with new values in the next iteration
-				safe->UnlockAllLocks();
-		}
-		for (int k = 0; k < numberOfLocksPerSafe; k++)
-			cns.push_back(safe->GetCombinationLocksVector().at(k)->GetCN());
-		/// TODO: The hashes are cleared and the ones that are printed in the file are not the real ones => How to actually get them??
-		uHashes.push_back(lockedUHashes.at(j - 1));
-		lHashes.push_back(lockedLHashes.at(j - 1));
-		pHashes.push_back(lockedPHashes.at(j - 1));
+			{
+				uHashes.push_back(lockedUHashes.at(j));
+				lHashes.push_back(lockedLHashes.at(j));
+				pHashes.push_back(lockedPHashes.at(j));
 
-		GetLockedUHashes().clear();
-		GetLockedLHashes().clear();
-		GetLockedPHashes().clear();
+				// Capture the other parts of the solution as well
+				for (int q = 0; q < numberOfLocksPerSafe; q++)
+				{
+					cns.push_back(safe->GetCombinationLocksVector().at(q)->GetCN());
+					hns.push_back(safe->GetCombinationLocksVector().at(q)->GetHN());
+				}
+				finished = true;
+			}
+			else
+			{
+				// Unlock all the locks inside it, so they could be locked/hashed again with new values in the next iteration
+				safe->UnlockAllLocks();
+				j++;
+			}
+		}
+		lockedUHashes.clear();
+		lockedLHashes.clear();
+		lockedPHashes.clear();
 		unlockedLNs.clear();
 
 		delete safe;

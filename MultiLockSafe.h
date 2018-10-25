@@ -1,3 +1,4 @@
+// Code written for CSC8501 by Mark Kostadinov, Student Number 150368616
 #pragma once
 
 #include "Lock.h"
@@ -11,8 +12,9 @@ public:
 
 	void LockTheSafe();
 	void LockTheSafe(Number& root, Number& uHash, Number& lHash, Number& pHash);
-	void UnlockTheSafe(std::vector<Number> & lockedLNs, std::vector<Number> & unlockedLNs);
+	void UnlockTheSafe(std::vector<Number> & lockedLNs, const bool hasBonusMultiSafe = NULL);
 	void UnlockAllLocks();
+	bool IsSafeValid(const bool hasBonusMultiSafe = NULL);
 
 	std::vector<Lock*> GetCombinationLocksVector() const { return combinationLocksVector; }
 	bool IsLocked() const { return isLocked; }

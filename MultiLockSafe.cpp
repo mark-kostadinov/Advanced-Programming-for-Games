@@ -1,3 +1,4 @@
+// Code written for CSC8501 by Mark Kostadinov, Student Number 150368616
 #include "MultiLockSafe.h"
 
 MultiLockSafe::MultiLockSafe()
@@ -52,54 +53,62 @@ void MultiLockSafe::LockTheSafe(Number & root, Number & uHash, Number & lHash, N
 	isLocked = true;
 }
 
-void MultiLockSafe::UnlockTheSafe(std::vector<Number> & lockedLNs, std::vector<Number> & unlockedLNs)
+void MultiLockSafe::UnlockTheSafe(std::vector<Number> & lockedLNs, const bool hasBonusMultiSafe)
 {
-	for (std::vector<Lock*>::iterator it = combinationLocksVector.begin(); it != combinationLocksVector.end(); it++)
+	try
 	{
-		try
-		{
 #ifdef DEBUG
-			PrintToConsole("Locked File Lock number: " + Number::GetStringFromDigits(lockedLNs.at(lockedLNcounter).GetDigits()), 1);
+		PrintToConsole("Locked File Lock number: " + Number::GetStringFromDigits(lockedLNs.at(lockedLNcounter).GetDigits()), 1);
+		PrintToConsole("Generated Lock number guess: " + Number::GetStringFromDigits(combinationLocksVector.at(0)->GetLN().GetDigits()), 1);
 #endif // DEBUG
-			if (!unlockedLNs.empty() && unlockedLNs.size() != numberOfLocksPerSafe)
-			{
-				for (auto innerIt = unlockedLNs.begin(); innerIt != unlockedLNs.end(); innerIt++)
-				{
-					// If a Lock is already unlocked, go to the next one
-					(*it)->GetLN().SetDigits((*innerIt).GetDigits());
-					it++;
-				}
-			}
-#ifdef DEBUG
-			PrintToConsole("Generated Lock number guess: " + Number::GetStringFromDigits((*it)->GetLN().GetDigits()), 1);
-#endif // DEBUG
-		}
-		catch (const std::out_of_range& oor)
-		{
-			std::string exceptionString = "Out of range exception caught: ";
-			exceptionString += oor.what();
-			PrintToConsole(exceptionString, 1);
-			exit(1);
-		}
-		// If the lock is not unlocked go back and try again
-		if (!(*it)->UnlockTheLock(lockedLNs.at(lockedLNcounter)))
-			return;
-		if (it != combinationLocksVector.end())
-		{
-			// Get the deduced lock number and use it next time as an input to the LN.at(i)
-			unlockedLNs.push_back((*it)->GetLN());
-			lockedLNcounter++;
-			// Unlock the safe every *numberOfLocksPerSafe* successful iterations
-			if (lockedLNcounter != 0 && (lockedLNcounter % numberOfLocksPerSafe == 0))
-				break;
-			return;
-		}
 	}
-	SetIsLocked(false);
+	catch (const std::out_of_range& oor)
+	{
+		std::string exceptionString = "Out of range exception caught: ";
+		exceptionString += oor.what();
+		PrintToConsole(exceptionString, 1);
+		exit(1);
+	}
+	// If the lock is not unlocked go back and try again
+	if (!combinationLocksVector.at(0)->UnlockTheLock(lockedLNs.at(lockedLNcounter)))
+		return;
+
+	if (IsSafeValid(hasBonusMultiSafe))
+	{
+		lockedLNcounter += numberOfLocksPerSafe;
+		SetIsLocked(false);
+	}
 }
 
 void MultiLockSafe::UnlockAllLocks()
 {
 	for (std::vector<Lock*>::iterator it = combinationLocksVector.begin(); it != combinationLocksVector.end(); it++)
 		(*it)->SetIsLocked(false);
+}
+
+bool MultiLockSafe::IsSafeValid(const bool hasBonusMultiSafe)
+{
+	for (std::vector<Lock*>::iterator it = combinationLocksVector.begin(); it != combinationLocksVector.end(); it++)
+	{
+		// CNs must not have repeating digits
+		if (Number::HasDuplicateDigits((*it)->GetCN()))
+		{
+#ifdef DEBUG
+			PrintToConsole("Invalid possible CN: " + Number::GetStringFromDigits((*it)->GetCN().GetDigits()), 1);
+#endif // DEBUG
+			return false;
+		}
+		// Ensure the sum of the digits on the combination lock to the left is less than the sum of the digits of the combination lock to the right
+		if (hasBonusMultiSafe)
+		{
+			if (it == combinationLocksVector.end())
+			{
+				if (Number::IsSumOfDigitsBigger((*(it - 1))->GetCN(), (*it)->GetCN()))
+					return false;
+			}
+			else if (Number::IsSumOfDigitsBigger((*it)->GetCN(), (*(it + 1))->GetCN()))
+				return false;
+		}
+	}
+	return true;
 }

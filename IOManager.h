@@ -1,3 +1,4 @@
+// Code written for CSC8501 by Mark Kostadinov, Student Number 150368616
 #pragma once
 
 #include <fstream>
@@ -18,17 +19,17 @@ public:
 
 	void WriteToFile(const std::string fileName);
 	void ReadFromFile(const std::string fileName);
-	void GenerateKeyFile(const std::string fileName, int solutionCount);
-	void GenerateMultiSafeFile(const std::string keyFileName, const std::string multiSafeFileName);
+	void GenerateKeyFile(const std::string fileName, int solutionCount, const bool onlyValidSolutions = NULL);
+	void GenerateMultiSafeFile(const std::string keyFileName, const std::string multiSafeFileName, const bool hasBonusMultiSafe = NULL);
 	std::vector<int> StringToIntegerVector(std::string string);
 	void GenerateLockedSafeFile(const std::string lockedSafeFileName);
-	void UnlockLockedSafeFile(const std::string lockedSafeFileName);
+	void UnlockLockedSafeFile(const std::string lockedSafeFileName, const bool hasBonusMultiSafe = NULL);
 
 	void ChangeNumberOfLocksPerSafe();
 	void GenerateKeyFileUI();
 	void GenerateMultiSafeFileUI();
 	void GenerateLockedSafeFileUI();
-	void UnlockSafesUI();
+	void UnlockSafeFileUI();
 
 	int GetSolutionCount() const { return solutionCount; }
 	void SetSolutionCount(int i) { solutionCount = i; }
@@ -54,13 +55,13 @@ protected:
 	void ParseLockedSafeFile(const std::string lockedSafeFileName);
 	void ParseSolutionCount(std::list<std::string> & lines, std::vector<int> & digitsVector);
 	void GenerateMultiSafeFileHashes();
-	void CheckMultiSafeFileValidity(std::vector<std::string> & validityList);
-	void WriteMultiSafeFile(const std::string multiSafeFileName);
+	void CheckMultiSafeFileValidity(std::vector<std::string> & validityList, const bool hasBonusMultiSafe = NULL);
+	void WriteMultiSafeFile(const std::string multiSafeFileName, const bool hasBonusMultiSafe = NULL);
 	void VerifyFileFormat(std::string & fileName);
 	std::string GetLastThreeCharsFromString(const std::string & string);
 	void ClearDataString(std::string & dataString);
 	void ClearDataStructures();
-	void UnlockUsingRNG();
+	void UnlockUsingRNG(const bool hasBonusMultiSafe = NULL);
 	void GenerateKeyFileFromLockedFile(const std::string fileName);
 
 	std::ifstream inFile;

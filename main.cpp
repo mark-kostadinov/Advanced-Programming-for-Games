@@ -1,8 +1,13 @@
+// Code written for CSC8501 by Mark Kostadinov, Student Number 150368616
 #include <time.h>
 #include "IOManager.h"
 
-/// --> Not all solutions are valid after being decyphered - that should be normal?
-/// --> Add file headers (author, description, etc.)
+/// --> Add a timer
+
+/// A key file containing 100 valid solutions (you may want to only output correct ones)
+/// A multi-safe file validating the solutions in your key file
+
+/// A sample of no more than 10 key files and associated multi-safe files (from locked-safe files)
 
 int main()
 {
@@ -11,28 +16,12 @@ int main()
 
 	IOManager io;
 
-	/// DEBUG - TODO: PrintToConsoleFormatted()
-	//for (int i = 0; i < 100; i++)
-	//{
-	//	Number v;
-	//	for (int j = 0; j < 4; j++)
-	//	{
-	//		if (v.GetDigits().at(j) >= 0)
-	//			PrintToConsole("  ");
-	//		else
-	//			PrintToConsole(" ");
-	//		PrintToConsole(v.GetDigits().at(j));
-	//		PrintToConsole(",");
-	//	}
-	//	PrintToConsole("", 1);
-	//}
-
 	// Pretty 1-dimensional but does the job
-	//io.ChangeNumberOfLocksPerSafe();
-	//io.GenerateKeyFileUI();
-	//io.GenerateMultiSafeFileUI();
-	//io.GenerateLockedSafeFileUI();
-	io.UnlockSafesUI();
+	io.ChangeNumberOfLocksPerSafe();
+	io.GenerateKeyFileUI();
+	io.GenerateMultiSafeFileUI();
+	io.GenerateLockedSafeFileUI();
+	io.UnlockSafeFileUI();
 
 	int exit;
 	PrintToConsole("\nPlease enter a key to exit...", 1);

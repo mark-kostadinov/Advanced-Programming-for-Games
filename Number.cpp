@@ -1,3 +1,4 @@
+// Code written for CSC8501 by Mark Kostadinov, Student Number 150368616
 #include "Number.h"
 
 Number::Number()
@@ -145,4 +146,45 @@ std::string Number::GetStringFromDigits(std::vector<int> digitsVector)
 		result += ToString(*it);
 	}
 	return result;
+}
+
+bool Number::HasDuplicateDigits(const Number & num)
+{
+	if (num.GetDigits().at(0) == num.GetDigits().at(1) || num.GetDigits().at(0) == num.GetDigits().at(2) ||
+		num.GetDigits().at(0) == num.GetDigits().at(3) || num.GetDigits().at(1) == num.GetDigits().at(2) ||
+		num.GetDigits().at(1) == num.GetDigits().at(3) || num.GetDigits().at(2) == num.GetDigits().at(3))
+		return true;
+	else
+		return false;
+}
+
+bool Number::IsSumOfDigitsBigger(const Number & left, const Number & right)
+{
+	int sumLeft = 0, sumRight = 0;
+
+	for (auto it = left.digits.begin(); it != left.digits.end(); it++)
+		sumLeft += (*it);
+	for (auto it = right.digits.begin(); it != right.digits.end(); it++)
+		sumRight += (*it);
+	
+	if (sumLeft >= sumRight)
+		return true;
+	else
+		return false;
+}
+
+bool Number::IsSumOfDigitsEven(const std::vector<Number>& numVector)
+{
+	int sumDigits = 0;
+
+	for (auto it = numVector.begin(); it != numVector.end(); it++)
+	{
+		for (int i = 0; i < numberOfDigitsPerLock; i++)
+			sumDigits += (*it).GetDigits().at(i);
+	}
+
+	if (sumDigits != 0 && (sumDigits % 2 == 0))
+		return true;
+	else
+		return false;
 }
