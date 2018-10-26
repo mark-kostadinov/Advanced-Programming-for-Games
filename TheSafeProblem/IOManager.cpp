@@ -610,7 +610,7 @@ void IOManager::ClearDataStructures()
 
 void IOManager::UnlockUsingRNG(const bool hasBonusMultiSafe)
 {
-	PrintToConsole("\nDecyphering...", 1);
+	PrintToConsole("\nDeciphering...", 1);
 
 	for (int i = 0; i < solutionCount; i++)
 	{
