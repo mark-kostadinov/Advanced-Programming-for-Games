@@ -1,9 +1,0 @@
-﻿  IOManager.cpp
-  MultiLockSafe.cpp
-  main.cpp
-  Generating code
-  43 of 880 functions ( 4.9%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    10 functions had inline decision re-evaluated but remain unchanged
-  Finished generating code
-  TheSafeProblem.vcxproj -> C:\Users\Mark\Desktop\UNI\YEAR 4\CSC8501 Advanced Programming for Games\TheSafeProblem\Release\TheSafeProblem.exe
