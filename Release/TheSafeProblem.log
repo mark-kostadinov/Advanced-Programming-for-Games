@@ -1,9 +1,9 @@
 ﻿  IOManager.cpp
-  Lock.cpp
-  main.cpp
   MultiLockSafe.cpp
-  Number.cpp
+  main.cpp
   Generating code
-  All 886 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  43 of 880 functions ( 4.9%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    10 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-  TheSafeProblem.vcxproj -> H:\CSC8501 Advanced Programming for Games\TheSafeProblem\Release\TheSafeProblem.exe
+  TheSafeProblem.vcxproj -> C:\Users\Mark\Desktop\UNI\YEAR 4\CSC8501 Advanced Programming for Games\TheSafeProblem\Release\TheSafeProblem.exe

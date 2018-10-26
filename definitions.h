@@ -8,7 +8,7 @@
 #include <sstream>
 #include <random>
 
-#define DEBUG
+//#define DEBUG
 #define FILE_IO_DIRECTORY "../FileIO/"
 #define NOT_VALID "NOT VALID\n"
 #define VALID "VALID\n"
@@ -31,7 +31,7 @@ inline void PrintToConsole(T element, int numNewLines = NULL)
 
 // Thing to string function
 template <typename T>
-std::string ToString(const T& value)
+inline std::string ToString(const T& value)
 {
 	std::ostringstream ss;
 	ss << value;

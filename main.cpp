@@ -2,13 +2,6 @@
 #include <time.h>
 #include "IOManager.h"
 
-/// --> Add a timer
-
-/// A key file containing 100 valid solutions (you may want to only output correct ones)
-/// A multi-safe file validating the solutions in your key file
-
-/// A sample of no more than 10 key files and associated multi-safe files (from locked-safe files)
-
 int main()
 {
 	// Initialize the pseudo-random generator to a distinctive runtime value

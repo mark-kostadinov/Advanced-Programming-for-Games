@@ -88,6 +88,8 @@ void MultiLockSafe::UnlockAllLocks()
 
 bool MultiLockSafe::IsSafeValid(const bool hasBonusMultiSafe)
 {
+	int counter = -1;
+
 	for (std::vector<Lock*>::iterator it = combinationLocksVector.begin(); it != combinationLocksVector.end(); it++)
 	{
 		// CNs must not have repeating digits
@@ -101,13 +103,17 @@ bool MultiLockSafe::IsSafeValid(const bool hasBonusMultiSafe)
 		// Ensure the sum of the digits on the combination lock to the left is less than the sum of the digits of the combination lock to the right
 		if (hasBonusMultiSafe)
 		{
-			if (it == combinationLocksVector.end())
+			counter++;
+			if (it != combinationLocksVector.end() && counter < numberOfLocksPerSafe - 1)
+			{
+				if (Number::IsSumOfDigitsBigger((*it)->GetCN(), (*(it + 1))->GetCN()))
+					return false;
+			}
+			else
 			{
 				if (Number::IsSumOfDigitsBigger((*(it - 1))->GetCN(), (*it)->GetCN()))
 					return false;
 			}
-			else if (Number::IsSumOfDigitsBigger((*it)->GetCN(), (*(it + 1))->GetCN()))
-				return false;
 		}
 	}
 	return true;

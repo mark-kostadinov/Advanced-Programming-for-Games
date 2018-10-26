@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include "Number.h"
 #include "MultiLockSafe.h"
+#include "Timer.h"
 
 enum FileType
 {
@@ -30,6 +31,8 @@ public:
 	void GenerateMultiSafeFileUI();
 	void GenerateLockedSafeFileUI();
 	void UnlockSafeFileUI();
+
+	Timer* GetPerformanceTimer() const { return perfTimer; }
 
 	int GetSolutionCount() const { return solutionCount; }
 	void SetSolutionCount(int i) { solutionCount = i; }
@@ -64,10 +67,7 @@ protected:
 	void UnlockUsingRNG(const bool hasBonusMultiSafe = NULL);
 	void GenerateKeyFileFromLockedFile(const std::string fileName);
 
-	std::ifstream inFile;
-	std::ofstream outFile;
-	std::string fileData;
-	std::string lockedFileData;
+	Timer* perfTimer;
 
 	int solutionCount;
 	int lockedSolutionsCount;
@@ -83,5 +83,10 @@ protected:
 	std::vector<Number> lns;
 	std::vector<Number> hns;
 	std::vector<std::string> validityList;
+
+	std::ifstream inFile;
+	std::ofstream outFile;
+	std::string fileData;
+	std::string lockedFileData;
 };
 

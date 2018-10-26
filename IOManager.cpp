@@ -8,10 +8,14 @@ IOManager::IOManager()
 {
 	solutionCount = 0;
 	lockedSolutionsCount = 0;
+
+	perfTimer = new Timer();
 }
 
 IOManager::~IOManager()
 {
+	delete perfTimer;
+	perfTimer = NULL;
 }
 
 void IOManager::OpenFile(const std::string fileName, FileType type)
@@ -121,7 +125,6 @@ void IOManager::GenerateKeyFile(const std::string fileName, int solutionCount, c
 			counter++;
 		}
 	}
-
 	fileData += "NS " + std::to_string(solutionCount) + "\n";
 
 	for (int i = 0; i < solutionCount; i++)
@@ -269,33 +272,35 @@ void IOManager::GenerateMultiSafeFileHashes()
 void IOManager::CheckMultiSafeFileValidity(std::vector<std::string> & validityList, const bool hasBonusMultiSafe)
 {
 	std::string temp = VALID;
-	int counter = -1;
+	int position = -1;
+	int counter = 0;
 
 	for (std::vector<Number>::iterator it = cns.begin(); it != cns.end(); it++)
 	{
+		if (Number::HasDuplicateDigits(*it))
+			temp = NOT_VALID;
+
 		if (hasBonusMultiSafe)
 		{
-			if (Number::HasDuplicateDigits(*it))
-				temp = NOT_VALID;
-			if (it == cns.end())
+			if (it != cns.end() && counter < numberOfLocksPerSafe - 1)
+			{
+				if (Number::IsSumOfDigitsBigger((*it), (*(it + 1))))
+					temp = NOT_VALID;
+			}
+			else
 			{
 				if (Number::IsSumOfDigitsBigger(*(it - 1), (*it)))
 					temp = NOT_VALID;
 			}
-			else if (Number::IsSumOfDigitsBigger((*it), (*(it + 1))))
-				temp = NOT_VALID;
-		}
-		else
-		{
-			if (Number::HasDuplicateDigits(*it))
-				temp = NOT_VALID;
+			counter++;
 		}
 		// Every *numOfLocksPerSafe* iteration
-		if (it - cns.begin() == counter + numberOfLocksPerSafe)
+		if (it - cns.begin() == position + numberOfLocksPerSafe)
 		{
 			validityList.push_back(temp);
-			counter = it - cns.begin();
+			position = it - cns.begin();
 			temp = VALID;
+			counter = 0;
 		}
 	}
 }
@@ -402,9 +407,7 @@ void IOManager::UnlockLockedSafeFile(const std::string lockedSafeFileName, const
 
 void IOManager::ChangeNumberOfLocksPerSafe()
 {
-	std::string temp = "Would you like to change the default number of locks per safe (the current value is: " + std::to_string(numberOfLocksPerSafe);
-	temp += ")? (y/n)";
-	PrintToConsole(temp, 1);
+	PrintToConsole("Would you like to change the default number of locks per safe (the current value is: " + std::to_string(numberOfLocksPerSafe) + ")? (y/n)", 1);
 	char ans;
 	std::cin >> ans;
 	if (ans == 'y')
@@ -443,7 +446,7 @@ void IOManager::GenerateKeyFileUI()
 			std::cin.clear();
 			std::cin.ignore(INT_MAX, '\n');
 		}
-		PrintToConsole("\nWould you like these to only be valid (a.k.a. apply bonus multi-safe combination rules)? (y/n)", 1);
+		PrintToConsole("\nWould you like these to only be valid (i.e. apply bonus multi-safe combination rules)? (y/n)", 1);
 		std::cin >> ans;
 		if (ans == 'y')
 			onlyValidSolutions = true;
@@ -454,7 +457,7 @@ void IOManager::GenerateKeyFileUI()
 
 void IOManager::GenerateMultiSafeFileUI()
 {
-	PrintToConsole("\nWould you like to generate a multi_safe file? (y/n)", 1);
+	PrintToConsole("\nWould you like to generate a multi-safe file? (y/n)", 1);
 	char ans;
 	std::cin >> ans;
 	if (ans == 'y')
@@ -465,7 +468,7 @@ void IOManager::GenerateMultiSafeFileUI()
 		PrintToConsole("\nEnter the name of the key file you wish to read in: ", 1);
 		std::cin >> keyFileName;
 		VerifyFileFormat(keyFileName);
-		PrintToConsole("\nEnter the name of the multi_safe file you wish to write to: ", 1);
+		PrintToConsole("\nEnter the name of the multi-safe file you wish to write to: ", 1);
 		std::cin >> multiSafeFileName;
 		VerifyFileFormat(multiSafeFileName);
 		PrintToConsole("\nWould you like to apply bonus multi-safe combination rules? (y/n)", 1);
@@ -475,46 +478,49 @@ void IOManager::GenerateMultiSafeFileUI()
 		else
 			hasBonusMultiSafe = false;
 		GenerateMultiSafeFile(keyFileName, multiSafeFileName, hasBonusMultiSafe);
-		PrintToConsole("\nMulti_safe file successfully created!", 1);
+		PrintToConsole("\nMulti-safe file successfully created!", 1);
 	}
 }
 
 void IOManager::GenerateLockedSafeFileUI()
 {
-	PrintToConsole("\nWould you like to generate a locked_safe file? (y/n)", 1);
+	PrintToConsole("\nWould you like to generate a locked-safe file? (y/n)", 1);
 	char ans;
 	std::cin >> ans;
 	if (ans == 'y')
 	{
 		std::string lockedSafeFileName;
-		PrintToConsole("\nEnter the name of the locked_safe file you wish to write to: ", 1);
+		PrintToConsole("\nEnter the name of the locked-safe file you wish to write to: ", 1);
 		std::cin >> lockedSafeFileName;
 		VerifyFileFormat(lockedSafeFileName);
 		GenerateLockedSafeFile(lockedSafeFileName);
-		PrintToConsole("\nLocked_safe file successfully created!", 1);
+		PrintToConsole("\nLocked-safe file successfully created!", 1);
 	}
 }
 
 void IOManager::UnlockSafeFileUI()
 {
-	PrintToConsole("\nWould you like to unlock a locked_safe file? (y/n)", 1);
+	PrintToConsole("\nWould you like to unlock a locked-safe file? (y/n) \n*** Warning: This can take a very long time! ***", 1);
 	char ans;
 	std::cin >> ans;
 	if (ans == 'y')
 	{
 		std::string lockedSafeFileName;
 		bool hasBonusMultiSafe;
-		PrintToConsole("\nEnter the name of the locked_safe file you wish to read from: ", 1);
+		PrintToConsole("\nEnter the name of the locked-safe file you wish to read from: ", 1);
 		std::cin >> lockedSafeFileName;
 		VerifyFileFormat(lockedSafeFileName);
-		PrintToConsole("\nWould you like to apply bonus multi-safe combination rules? (y/n) \n*** Warning: This can take a very long time! ***", 1);
+		PrintToConsole("\nWould you like to apply bonus multi-safe combination rules? (y/n)", 1);
 		std::cin >> ans;
 		if (ans == 'y')
 			hasBonusMultiSafe = true;
 		else
 			hasBonusMultiSafe = false;
+
+		perfTimer->Reset();
 		UnlockLockedSafeFile(lockedSafeFileName, hasBonusMultiSafe);
-		PrintToConsole("\nLocked_safe file successfully unlocked!", 1);
+		PrintToConsole("\nLocked-safe file successfully unlocked!", 1);
+		PrintToConsole("\nIt took " + std::to_string(perfTimer->GetTimeMS()) + "ms to perform that action.", 1);
 
 		//=====================================
 
@@ -523,16 +529,16 @@ void IOManager::UnlockSafeFileUI()
 		std::cin >> keyFileName;
 		VerifyFileFormat(keyFileName);
 		GenerateKeyFileFromLockedFile(keyFileName);
-		PrintToConsole("\nKey file from locked file successfully created!", 1);
+		PrintToConsole("\nKey file from locked-safe file successfully created!", 1);
 
 		//======================================
 
 		std::string multiSafeFileName;
-		PrintToConsole("\nEnter the name of the multi_safe file you wish to write to: ", 1);
+		PrintToConsole("\nEnter the name of the multi-safe file you wish to write to: ", 1);
 		std::cin >> multiSafeFileName;
 		VerifyFileFormat(multiSafeFileName);
 		GenerateMultiSafeFile(keyFileName, multiSafeFileName);
-		PrintToConsole("\nMulti_safe file from locked file successfully created!", 1);
+		PrintToConsole("\nMulti-safe file from locked-safe file successfully created!", 1);
 	}
 }
 
@@ -541,9 +547,7 @@ void IOManager::VerifyFileFormat(std::string & fileName)
 	if (!fileName.empty())
 	{
 		std::string lastChar = std::to_string(fileName.back());
-		std::string currentFileFormat;
-
-		currentFileFormat = GetLastThreeCharsFromString(fileName);
+		std::string currentFileFormat = GetLastThreeCharsFromString(fileName);
 
 		if (fileName.find('.') != fileName.find_last_of('.') && fileName.find('.') != std::string::npos)
 		{
@@ -554,7 +558,6 @@ void IOManager::VerifyFileFormat(std::string & fileName)
 
 			currentFileFormat = GetLastThreeCharsFromString(fileName);
 		}
-
 		if (currentFileFormat != FILE_FORMAT && fileName.at(fileName.length() - 1) != '.')
 			fileName += DOT_FILE_FORMAT;
 		else if (currentFileFormat != FILE_FORMAT)
@@ -603,13 +606,12 @@ void IOManager::UnlockUsingRNG(const bool hasBonusMultiSafe)
 	{
 		int j = 0;
 		bool finished = false;
+		Number temp;
 		MultiLockSafe* safe = new MultiLockSafe(numberOfLocksPerSafe);
 		std::vector<Number> unlockedLNs;
 
 		while (!finished)
 		{
-			/// TODO: Add time counter
-			Number temp;
 			temp.SetDigits(Number::GenerateRandomFourDigits());
 			lockedUHashes.push_back(temp);
 			temp.SetDigits(Number::GenerateRandomFourDigits());

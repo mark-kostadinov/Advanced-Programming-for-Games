@@ -23,5 +23,6 @@ public:
 protected:
 	std::vector<Lock*> combinationLocksVector;
 	bool isLocked;
+	Number previousCN;
 };
 
